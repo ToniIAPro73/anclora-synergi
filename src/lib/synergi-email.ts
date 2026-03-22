@@ -84,7 +84,7 @@ async function deliverEmail(input: SendEmailInput) {
     return
   }
 
-  await sendNoop(input)
+  await sendNoop()
 }
 
 function wrapEmailHtml(content: string) {

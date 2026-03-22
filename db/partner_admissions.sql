@@ -63,6 +63,61 @@ CREATE TABLE IF NOT EXISTS partner_admission_decisions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS partner_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  partner_account_id UUID NOT NULL UNIQUE REFERENCES partner_accounts(id) ON DELETE CASCADE,
+  partner_profile_type TEXT NOT NULL DEFAULT 'service-premium',
+  collaboration_scope TEXT NOT NULL DEFAULT 'curated-collaboration',
+  headline TEXT,
+  service_tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+  primary_regions JSONB NOT NULL DEFAULT '[]'::jsonb,
+  languages JSONB NOT NULL DEFAULT '[]'::jsonb,
+  website_url TEXT,
+  linkedin_url TEXT,
+  instagram_url TEXT,
+  profile_visibility TEXT NOT NULL DEFAULT 'workspace',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS partner_assets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  asset_kind TEXT NOT NULL DEFAULT 'document',
+  access_level TEXT NOT NULL DEFAULT 'private',
+  asset_url TEXT,
+  download_count INTEGER NOT NULL DEFAULT 0,
+  review_status TEXT NOT NULL DEFAULT 'new',
+  reviewed_at TIMESTAMPTZ,
+  published_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS partner_opportunities (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  summary TEXT,
+  opportunity_type TEXT NOT NULL DEFAULT 'project',
+  status TEXT NOT NULL DEFAULT 'new',
+  partner_response TEXT NOT NULL DEFAULT 'new',
+  partner_response_notes TEXT,
+  region_label TEXT,
+  due_label TEXT,
+  value_label TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS partner_activity_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_partner_admissions_created_at
   ON partner_admissions (created_at DESC);
 

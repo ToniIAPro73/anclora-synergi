@@ -874,6 +874,186 @@ input {
   padding: 40px;
 }
 
+.synergi-workspace-grid {
+  grid-template-columns: 0.72fr 1.28fr;
+}
+
+.synergi-workspace-module-nav {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.synergi-workspace-module-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--synergi-champagne);
+}
+
+.synergi-workspace-module-grid,
+.synergi-workspace-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.synergi-workspace-form-card {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(247, 241, 231, 0.1);
+  background: rgba(8, 31, 40, 0.52);
+  margin-top: 0;
+}
+
+.synergi-workspace-muted {
+  color: var(--synergi-muted);
+}
+
+.synergi-workspace-inline-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--synergi-muted);
+  font-size: 0.88rem;
+}
+
+.synergi-workspace-meta-grid {
+  margin-top: 4px;
+}
+
+.synergi-workspace-inline-meta small {
+  color: var(--synergi-champagne-soft);
+}
+
+.synergi-workspace-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.synergi-workspace-action {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  font-size: 0.7rem;
+}
+
+.synergi-workspace-action.is-selected {
+  box-shadow: 0 0 0 1px rgba(247, 241, 231, 0.24) inset, 0 18px 36px rgba(181, 212, 223, 0.16);
+}
+
+.synergi-workspace-opportunity-notes {
+  min-height: 110px;
+}
+
+.synergi-workspace-opportunities-layout {
+  display: grid;
+  grid-template-columns: 0.84fr 1.16fr;
+  gap: 18px;
+}
+
+.synergi-workspace-opportunity-card,
+.synergi-workspace-opportunity-detail {
+  text-align: left;
+}
+
+.synergi-workspace-opportunity-card {
+  width: 100%;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.synergi-workspace-opportunity-card:hover,
+.synergi-workspace-opportunity-card.is-active {
+  transform: translateY(-2px);
+  border-color: rgba(212, 175, 55, 0.28);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.22);
+}
+
+.synergi-workspace-opportunity-card-head,
+.synergi-workspace-opportunity-detail-head,
+.synergi-workspace-opportunity-footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.synergi-workspace-opportunity-detail-head {
+  margin-bottom: 8px;
+}
+
+.synergi-workspace-opportunity-summary {
+  margin-top: 0;
+  color: var(--synergi-copy);
+}
+
+.synergi-workspace-opportunity-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--synergi-champagne);
+}
+
+.synergi-workspace-opportunity-footer {
+  align-items: center;
+}
+
+.synergi-workspace-opportunity-footer small {
+  color: var(--synergi-muted);
+  max-width: 520px;
+}
+
+.synergi-workspace-opportunity-save {
+  width: auto;
+  min-width: 180px;
+}
+
+.synergi-workspace-opportunity-response {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 241, 231, 0.1);
+  background: rgba(8, 31, 40, 0.48);
+  color: var(--synergi-copy);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.synergi-workspace-opportunity-response.is-new {
+  color: var(--synergi-muted);
+}
+
+.synergi-workspace-opportunity-response.is-watching {
+  color: #b8edf4;
+  border-color: rgba(141, 211, 223, 0.28);
+}
+
+.synergi-workspace-opportunity-response.is-interested {
+  color: #dff7c8;
+  border-color: rgba(180, 225, 147, 0.34);
+}
+
+.synergi-workspace-opportunity-response.is-passed {
+  color: #f1d0c4;
+  border-color: rgba(212, 149, 129, 0.32);
+}
+
+.synergi-workspace-logout {
+  margin-top: 22px;
+}
+
 @media (max-width: 1100px) {
   .synergi-grid {
     grid-template-columns: 1fr;
@@ -889,8 +1069,11 @@ input {
 
   .synergi-review-summary-grid,
   .synergi-review-grid,
+  .synergi-workspace-grid,
+  .synergi-workspace-opportunities-layout,
   .synergi-review-meta-grid,
-  .synergi-review-actions {
+  .synergi-review-actions,
+  .synergi-workspace-action-grid {
     grid-template-columns: 1fr;
   }
 }

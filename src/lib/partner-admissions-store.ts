@@ -78,7 +78,7 @@ declare global {
   var __ancloraSynergiPartnerAdmissionsSchemaReady: Promise<void> | undefined
 }
 
-async function ensurePartnerAdmissionsSchema() {
+export async function ensurePartnerAdmissionsSchema() {
   await sql`
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
   `

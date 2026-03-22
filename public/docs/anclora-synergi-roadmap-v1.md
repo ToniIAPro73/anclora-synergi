@@ -90,7 +90,9 @@ Objetivo:
 Entregables:
 - overview del partner
 - perfil editable
+- segmentación por tipo de partner
 - activos y documentos compartidos
+- oportunidades o referrals iniciales
 - actividad reciente
 - CTA operativos para colaboración y referrals
 
