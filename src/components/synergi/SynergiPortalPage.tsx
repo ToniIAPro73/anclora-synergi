@@ -65,19 +65,21 @@ export function SynergiPortalPage() {
       const api = window.grecaptcha
       const container = captchaContainerRef.current
       if (!api || !container || captchaWidgetIdRef.current !== null) return
-      if (typeof api.render !== 'function') {
-        setNotice(t('captchaUnavailable'))
-        return
-      }
 
       const isMobileViewport = window.matchMedia('(max-width: 420px)').matches
       const mount = () => {
+        if (typeof api.render !== 'function') {
+          setNotice(t('captchaUnavailable'))
+          return
+        }
+
         captchaWidgetIdRef.current = api.render(container, {
           sitekey: recaptchaSiteKey,
           theme: 'dark',
           size: isMobileViewport ? 'compact' : 'normal',
           callback: (token: string) => {
             window.onSynergiRecaptchaVerified?.(token)
+            setNotice(null)
           },
           'expired-callback': () => {
             setCaptchaToken(null)
