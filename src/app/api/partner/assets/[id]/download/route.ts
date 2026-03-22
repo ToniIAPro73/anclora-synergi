@@ -74,6 +74,17 @@ async function loadRemoteAsset(assetUrl: string) {
   }
 }
 
+function loadInlineAsset(assetBody: string, filename: string, contentFormat: 'markdown' | 'text') {
+  const body = Buffer.from(assetBody, 'utf-8')
+
+  return {
+    body,
+    filename,
+    contentType: contentFormat === 'markdown' ? 'text/markdown; charset=utf-8' : 'text/plain; charset=utf-8',
+    size: body.byteLength,
+  }
+}
+
 export async function GET(
   _request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -93,13 +104,22 @@ export async function GET(
 
   try {
     const asset = await getPartnerAssetById(session.partnerAccountId, id)
-    if (!asset || !asset.asset_url) {
+    if (!asset) {
       return NextResponse.json({ error: 'Partner asset not found.' }, { status: 404 })
     }
 
-    const filePayload = /^https?:\/\//i.test(asset.asset_url)
-      ? await loadRemoteAsset(asset.asset_url)
-      : await loadLocalAsset(asset.asset_url)
+    const fallbackFilename = `${asset.title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'partner-asset'}${asset.content_format === 'markdown' ? '.md' : '.txt'}`
+    const filePayload = asset.asset_body
+      ? loadInlineAsset(asset.asset_body, fallbackFilename, asset.content_format)
+      : asset.asset_url
+        ? /^https?:\/\//i.test(asset.asset_url)
+          ? await loadRemoteAsset(asset.asset_url)
+          : await loadLocalAsset(asset.asset_url)
+        : null
+
+    if (!filePayload) {
+      return NextResponse.json({ error: 'Partner asset not available.' }, { status: 404 })
+    }
 
     await registerPartnerAssetDownload(session.partnerAccountId, id)
     return new NextResponse(filePayload.body, {

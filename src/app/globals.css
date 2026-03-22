@@ -1100,6 +1100,38 @@ input {
   margin-top: 22px;
 }
 
+.synergi-ops-panel {
+  margin-top: 24px;
+  padding: 30px;
+}
+
+.synergi-ops-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 22px;
+}
+
+.synergi-ops-toolbar {
+  margin-top: 20px;
+  justify-content: space-between;
+}
+
+.synergi-ops-grid {
+  margin-top: 22px;
+}
+
+.synergi-ops-status-filters {
+  margin-top: 14px;
+}
+
+.synergi-ops-actions {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.synergi-ops-fulfillment-grid {
+  margin-top: 16px;
+  gap: 14px;
+}
+
 .synergi-workspace-referral-card {
   border-color: rgba(144, 206, 214, 0.18);
   background: linear-gradient(180deg, rgba(9, 42, 54, 0.9) 0%, rgba(8, 31, 40, 0.82) 100%);
@@ -1171,11 +1203,14 @@ input {
   .synergi-workspace-assets-layout,
   .synergi-workspace-opportunities-layout,
   .synergi-workspace-referrals-layout,
+  .synergi-ops-summary-grid,
+  .synergi-ops-grid,
   .synergi-workspace-pack-grid,
   .synergi-review-meta-grid,
   .synergi-review-actions,
   .synergi-workspace-action-grid,
-  .synergi-workspace-referral-actions {
+  .synergi-workspace-referral-actions,
+  .synergi-ops-actions {
     grid-template-columns: 1fr;
   }
 }

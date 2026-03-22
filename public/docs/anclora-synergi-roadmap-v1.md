@@ -108,6 +108,18 @@ Entregables:
 - timeline de actividad con trazabilidad útil
 - modelo Neon preparado para evolución posterior
 
+### Fase 5c. Workspace partner v3
+
+Objetivo:
+- abrir la capa interna de operación del workspace para que el equipo gestione referrals, solicitudes de asset packs y entrega real de assets al partner
+
+Entregables:
+- panel interno de gestión de referrals por partner
+- panel interno de gestión de asset pack requests
+- estados internos con notas operativas y trazabilidad
+- publicación o entrega real de assets al workspace partner
+- sincronización clara entre operación interna y experiencia partner
+
 ### Fase 6. Hardening y operación real
 
 Objetivo:
@@ -139,6 +151,7 @@ Entregables:
 - `synergi-partner-auth`
 - `synergi-partner-workspace-v1`
 - `synergi-partner-workspace-v2`
+- `synergi-partner-workspace-v3`
 - `synergi-credential-lifecycle`
 
 ### Bloque plataforma

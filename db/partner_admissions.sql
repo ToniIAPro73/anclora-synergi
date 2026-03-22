@@ -88,6 +88,8 @@ CREATE TABLE IF NOT EXISTS partner_assets (
   asset_kind TEXT NOT NULL DEFAULT 'document',
   access_level TEXT NOT NULL DEFAULT 'private',
   asset_url TEXT,
+  asset_body TEXT,
+  content_format TEXT NOT NULL DEFAULT 'markdown',
   download_count INTEGER NOT NULL DEFAULT 0,
   review_status TEXT NOT NULL DEFAULT 'new',
   reviewed_at TIMESTAMPTZ,
@@ -121,6 +123,9 @@ CREATE TABLE IF NOT EXISTS partner_referrals (
   budget_label TEXT,
   referral_notes TEXT,
   status TEXT NOT NULL DEFAULT 'submitted',
+  internal_notes TEXT,
+  reviewed_by TEXT,
+  reviewed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -135,6 +140,11 @@ CREATE TABLE IF NOT EXISTS partner_asset_pack_requests (
   target_region TEXT,
   needed_by_label TEXT,
   status TEXT NOT NULL DEFAULT 'submitted',
+  delivered_asset_id UUID REFERENCES partner_assets(id) ON DELETE SET NULL,
+  internal_notes TEXT,
+  reviewed_by TEXT,
+  reviewed_at TIMESTAMPTZ,
+  resolved_by TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   resolved_at TIMESTAMPTZ

@@ -40,6 +40,8 @@ export type PartnerAssetRecord = {
   asset_kind: 'playbook' | 'document' | 'brief'
   access_level: 'private' | 'shared'
   asset_url: string | null
+  asset_body: string | null
+  content_format: 'markdown' | 'text'
   download_count: number
   review_status: 'new' | 'reviewed'
   reviewed_at: string | null
@@ -73,6 +75,9 @@ export type PartnerReferralRecord = {
   budget_label: string | null
   referral_notes: string | null
   status: 'submitted' | 'reviewing' | 'qualified' | 'introduced' | 'closed' | 'declined'
+  internal_notes: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
   created_at: string
   updated_at: string
 }
@@ -87,9 +92,35 @@ export type PartnerAssetPackRequestRecord = {
   target_region: string | null
   needed_by_label: string | null
   status: 'submitted' | 'reviewing' | 'fulfilled' | 'declined'
+  delivered_asset_id: string | null
+  internal_notes: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  resolved_by: string | null
   created_at: string
   updated_at: string
   resolved_at: string | null
+}
+
+export type AdminPartnerReferralRecord = PartnerReferralRecord & {
+  partner_email: string
+  partner_full_name: string
+  partner_company_name: string | null
+  workspace_display_name: string | null
+}
+
+export type AdminPartnerAssetPackRequestRecord = PartnerAssetPackRequestRecord & {
+  partner_email: string
+  partner_full_name: string
+  partner_company_name: string | null
+  workspace_display_name: string | null
+}
+
+export type AdminPublishedPartnerAssetRecord = PartnerAssetRecord & {
+  partner_email: string
+  partner_full_name: string
+  partner_company_name: string | null
+  workspace_display_name: string | null
 }
 
 export type PartnerActivityEventRecord = {
@@ -100,9 +131,12 @@ export type PartnerActivityEventRecord = {
     | 'asset_published'
     | 'asset_reviewed'
     | 'asset_downloaded'
+    | 'asset_pack_fulfilled'
+    | 'asset_pack_status_updated'
     | 'opportunity_created'
     | 'opportunity_updated'
     | 'profile_updated'
+    | 'referral_status_updated'
     | 'referral_submitted'
     | 'asset_pack_requested'
   title: string
@@ -153,7 +187,7 @@ function getDefaultModuleOrder(profileType: PartnerProfileType): PartnerModuleKe
   }
 }
 
-async function ensurePartnerWorkspaceSchema() {
+export async function ensurePartnerWorkspaceSchema() {
   await ensurePartnerAdmissionsSchema()
 
   await sql`
@@ -184,6 +218,8 @@ async function ensurePartnerWorkspaceSchema() {
       asset_kind TEXT NOT NULL DEFAULT 'document',
       access_level TEXT NOT NULL DEFAULT 'private',
       asset_url TEXT,
+      asset_body TEXT,
+      content_format TEXT NOT NULL DEFAULT 'markdown',
       download_count INTEGER NOT NULL DEFAULT 0,
       review_status TEXT NOT NULL DEFAULT 'new',
       reviewed_at TIMESTAMPTZ,
@@ -194,6 +230,16 @@ async function ensurePartnerWorkspaceSchema() {
   await sql`
     ALTER TABLE partner_assets
       ADD COLUMN IF NOT EXISTS asset_url TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_assets
+      ADD COLUMN IF NOT EXISTS asset_body TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_assets
+      ADD COLUMN IF NOT EXISTS content_format TEXT NOT NULL DEFAULT 'markdown';
   `
 
   await sql`
@@ -261,9 +307,27 @@ async function ensurePartnerWorkspaceSchema() {
       budget_label TEXT,
       referral_notes TEXT,
       status TEXT NOT NULL DEFAULT 'submitted',
+      internal_notes TEXT,
+      reviewed_by TEXT,
+      reviewed_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `
+
+  await sql`
+    ALTER TABLE partner_referrals
+      ADD COLUMN IF NOT EXISTS internal_notes TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_referrals
+      ADD COLUMN IF NOT EXISTS reviewed_by TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_referrals
+      ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
   `
 
   await sql`
@@ -277,10 +341,40 @@ async function ensurePartnerWorkspaceSchema() {
       target_region TEXT,
       needed_by_label TEXT,
       status TEXT NOT NULL DEFAULT 'submitted',
+      delivered_asset_id UUID REFERENCES partner_assets(id) ON DELETE SET NULL,
+      internal_notes TEXT,
+      reviewed_by TEXT,
+      reviewed_at TIMESTAMPTZ,
+      resolved_by TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       resolved_at TIMESTAMPTZ
     );
+  `
+
+  await sql`
+    ALTER TABLE partner_asset_pack_requests
+      ADD COLUMN IF NOT EXISTS delivered_asset_id UUID REFERENCES partner_assets(id) ON DELETE SET NULL;
+  `
+
+  await sql`
+    ALTER TABLE partner_asset_pack_requests
+      ADD COLUMN IF NOT EXISTS internal_notes TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_asset_pack_requests
+      ADD COLUMN IF NOT EXISTS reviewed_by TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_asset_pack_requests
+      ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+  `
+
+  await sql`
+    ALTER TABLE partner_asset_pack_requests
+      ADD COLUMN IF NOT EXISTS resolved_by TEXT;
   `
 
   await sql`
@@ -311,6 +405,8 @@ async function seedWorkspaceDefaults(account: PartnerAccountRecord, workspace: P
         asset_kind,
         access_level,
         asset_url,
+        asset_body,
+        content_format,
         download_count,
         review_status,
         reviewed_at
@@ -323,6 +419,8 @@ async function seedWorkspaceDefaults(account: PartnerAccountRecord, workspace: P
           'brief',
           'private',
           ${'/partner-assets/synergi-onboarding-brief.md'},
+          NULL,
+          'markdown',
           0,
           'new',
           NULL
@@ -334,6 +432,8 @@ async function seedWorkspaceDefaults(account: PartnerAccountRecord, workspace: P
           'playbook',
           'shared',
           ${'/partner-assets/synergi-operating-playbook.md'},
+          NULL,
+          'markdown',
           0,
           'new',
           NULL
@@ -483,6 +583,8 @@ export async function getOrCreatePartnerWorkspaceBundle(
       asset_kind,
       access_level,
       asset_url,
+      asset_body,
+      content_format,
       download_count,
       review_status,
       reviewed_at,
@@ -629,6 +731,8 @@ export async function markPartnerAssetReviewed(partnerAccountId: string, assetId
       asset_kind,
       access_level,
       asset_url,
+      asset_body,
+      content_format,
       download_count,
       review_status,
       reviewed_at,
@@ -669,6 +773,8 @@ export async function getPartnerAssetById(partnerAccountId: string, assetId: str
       asset_kind,
       access_level,
       asset_url,
+      asset_body,
+      content_format,
       download_count,
       review_status,
       reviewed_at,
@@ -697,6 +803,8 @@ export async function registerPartnerAssetDownload(partnerAccountId: string, ass
       asset_kind,
       access_level,
       asset_url,
+      asset_body,
+      content_format,
       download_count,
       review_status,
       reviewed_at,
@@ -792,6 +900,9 @@ export async function listPartnerReferrals(partnerAccountId: string) {
       budget_label,
       referral_notes,
       status,
+      internal_notes,
+      reviewed_by,
+      reviewed_at,
       created_at,
       updated_at
     FROM partner_referrals
@@ -856,6 +967,9 @@ export async function createPartnerReferral(
       budget_label,
       referral_notes,
       status,
+      internal_notes,
+      reviewed_by,
+      reviewed_at,
       created_at,
       updated_at;
   `
@@ -896,6 +1010,11 @@ export async function listPartnerAssetPackRequests(partnerAccountId: string) {
       target_region,
       needed_by_label,
       status,
+      delivered_asset_id,
+      internal_notes,
+      reviewed_by,
+      reviewed_at,
+      resolved_by,
       created_at,
       updated_at,
       resolved_at
@@ -958,6 +1077,11 @@ export async function createPartnerAssetPackRequest(
       target_region,
       needed_by_label,
       status,
+      delivered_asset_id,
+      internal_notes,
+      reviewed_by,
+      reviewed_at,
+      resolved_by,
       created_at,
       updated_at,
       resolved_at;
@@ -985,4 +1109,371 @@ export async function createPartnerAssetPackRequest(
     ...rawRequest,
     requested_assets: normalizeStringArray(rawRequest.requested_assets),
   } as PartnerAssetPackRequestRecord
+}
+
+export async function listAdminPartnerReferrals(input?: {
+  status?: PartnerReferralRecord['status']
+  limit?: number
+}) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const limit = Math.max(1, Math.min(input?.limit || 50, 100))
+
+  return sql<AdminPartnerReferralRecord>`
+    SELECT
+      r.id,
+      r.partner_account_id,
+      r.referral_name,
+      r.referral_company,
+      r.referral_email,
+      r.referral_phone,
+      r.referral_kind,
+      r.region_label,
+      r.budget_label,
+      r.referral_notes,
+      r.status,
+      r.internal_notes,
+      r.reviewed_by,
+      r.reviewed_at,
+      r.created_at,
+      r.updated_at,
+      a.email AS partner_email,
+      a.full_name AS partner_full_name,
+      a.company_name AS partner_company_name,
+      w.display_name AS workspace_display_name
+    FROM partner_referrals r
+    INNER JOIN partner_accounts a ON a.id = r.partner_account_id
+    LEFT JOIN partner_workspaces w ON w.partner_account_id = r.partner_account_id
+    WHERE (${input?.status || null}::text IS NULL OR r.status = ${input?.status || null})
+    ORDER BY r.created_at DESC
+    LIMIT ${limit};
+  `
+}
+
+export async function updateAdminPartnerReferralStatus(input: {
+  id: string
+  status: PartnerReferralRecord['status']
+  internalNotes?: string | null
+  reviewedBy: string
+}) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const updatedRows = await sql<PartnerReferralRecord>`
+    UPDATE partner_referrals
+    SET
+      status = ${input.status},
+      internal_notes = ${input.internalNotes?.trim() || null},
+      reviewed_by = ${input.reviewedBy},
+      reviewed_at = NOW(),
+      updated_at = NOW()
+    WHERE id = ${input.id}
+    RETURNING
+      id,
+      partner_account_id,
+      referral_name,
+      referral_company,
+      referral_email,
+      referral_phone,
+      referral_kind,
+      region_label,
+      budget_label,
+      referral_notes,
+      status,
+      internal_notes,
+      reviewed_by,
+      reviewed_at,
+      created_at,
+      updated_at;
+  `
+
+  const referral = updatedRows[0]
+  if (!referral) return null
+
+  await sql`
+    INSERT INTO partner_activity_events (
+      partner_account_id,
+      event_type,
+      title,
+      description
+    )
+    VALUES (
+      ${referral.partner_account_id},
+      'referral_status_updated',
+      ${'Referral status updated'},
+      ${`Synergi ha actualizado el referral ${referral.referral_name} a ${input.status}.`}
+    );
+  `
+
+  const hydratedRows = await listAdminPartnerReferrals({ limit: 100 })
+  return hydratedRows.find((item) => item.id === input.id) || null
+}
+
+export async function listAdminPartnerAssetPackRequests(input?: {
+  status?: PartnerAssetPackRequestRecord['status']
+  limit?: number
+}) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const limit = Math.max(1, Math.min(input?.limit || 50, 100))
+
+  const rows = await sql<Omit<AdminPartnerAssetPackRequestRecord, 'requested_assets'> & { requested_assets: unknown }>`
+    SELECT
+      r.id,
+      r.partner_account_id,
+      r.title,
+      r.pack_type,
+      r.request_notes,
+      r.requested_assets,
+      r.target_region,
+      r.needed_by_label,
+      r.status,
+      r.delivered_asset_id,
+      r.internal_notes,
+      r.reviewed_by,
+      r.resolved_by,
+      r.created_at,
+      r.updated_at,
+      r.resolved_at,
+      a.email AS partner_email,
+      a.full_name AS partner_full_name,
+      a.company_name AS partner_company_name,
+      w.display_name AS workspace_display_name
+    FROM partner_asset_pack_requests r
+    INNER JOIN partner_accounts a ON a.id = r.partner_account_id
+    LEFT JOIN partner_workspaces w ON w.partner_account_id = r.partner_account_id
+    WHERE (${input?.status || null}::text IS NULL OR r.status = ${input?.status || null})
+    ORDER BY r.created_at DESC
+    LIMIT ${limit};
+  `
+
+  return rows.map((row) => ({
+    ...row,
+    requested_assets: normalizeStringArray(row.requested_assets),
+  })) as AdminPartnerAssetPackRequestRecord[]
+}
+
+export async function updateAdminPartnerAssetPackRequest(input: {
+  id: string
+  status: PartnerAssetPackRequestRecord['status']
+  internalNotes?: string | null
+  reviewedBy: string
+  deliveredAssetId?: string | null
+  fulfillmentAsset?: {
+    title: string
+    description?: string | null
+    assetKind?: PartnerAssetRecord['asset_kind']
+    accessLevel?: PartnerAssetRecord['access_level']
+    assetUrl?: string | null
+    assetBody?: string | null
+    contentFormat?: PartnerAssetRecord['content_format']
+  } | null
+}) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const currentRows = await sql<PartnerAssetPackRequestRecord & { requested_assets: unknown }>`
+    SELECT
+      id,
+      partner_account_id,
+      title,
+      pack_type,
+      request_notes,
+      requested_assets,
+      target_region,
+      needed_by_label,
+      status,
+      delivered_asset_id,
+      internal_notes,
+      reviewed_by,
+      reviewed_at,
+      resolved_by,
+      created_at,
+      updated_at,
+      resolved_at
+    FROM partner_asset_pack_requests
+    WHERE id = ${input.id}
+    LIMIT 1;
+  `
+
+  const current = currentRows[0]
+  if (!current) return null
+
+  let deliveredAssetId = input.deliveredAssetId?.trim() || current.delivered_asset_id
+
+  if (input.status === 'fulfilled' && input.fulfillmentAsset?.title.trim()) {
+    const assetRows = await sql<{ id: string }>`
+      INSERT INTO partner_assets (
+        partner_account_id,
+        title,
+        description,
+        asset_kind,
+        access_level,
+        asset_url,
+        asset_body,
+        content_format,
+        download_count,
+        review_status,
+        reviewed_at
+      )
+      VALUES (
+        ${current.partner_account_id},
+        ${input.fulfillmentAsset.title.trim()},
+        ${input.fulfillmentAsset.description?.trim() || null},
+        ${input.fulfillmentAsset.assetKind || 'document'},
+        ${input.fulfillmentAsset.accessLevel || 'shared'},
+        ${input.fulfillmentAsset.assetUrl?.trim() || null},
+        ${input.fulfillmentAsset.assetBody?.trim() || null},
+        ${input.fulfillmentAsset.contentFormat || 'markdown'},
+        0,
+        'new',
+        NULL
+      )
+      RETURNING id;
+    `
+
+    deliveredAssetId = assetRows[0]?.id || null
+  }
+
+  const updatedRows = await sql<PartnerAssetPackRequestRecord & { requested_assets: unknown }>`
+    UPDATE partner_asset_pack_requests
+    SET
+      status = ${input.status},
+      delivered_asset_id = ${deliveredAssetId},
+      internal_notes = ${input.internalNotes?.trim() || null},
+      reviewed_by = ${input.reviewedBy},
+      reviewed_at = NOW(),
+      resolved_by = ${input.reviewedBy},
+      resolved_at = CASE WHEN ${input.status} IN ('fulfilled', 'declined') THEN NOW() ELSE NULL END,
+      updated_at = NOW()
+    WHERE id = ${input.id}
+    RETURNING
+      id,
+      partner_account_id,
+      title,
+      pack_type,
+      request_notes,
+      requested_assets,
+      target_region,
+      needed_by_label,
+      status,
+      delivered_asset_id,
+      internal_notes,
+      reviewed_by,
+      reviewed_at,
+      resolved_by,
+      created_at,
+      updated_at,
+      resolved_at;
+  `
+
+  const updated = updatedRows[0]
+  if (!updated) return null
+
+  await sql`
+    INSERT INTO partner_activity_events (
+      partner_account_id,
+      event_type,
+      title,
+      description
+    )
+    VALUES (
+      ${updated.partner_account_id},
+      ${input.status === 'fulfilled' ? 'asset_pack_fulfilled' : 'asset_pack_status_updated'},
+      ${input.status === 'fulfilled' ? 'Asset pack fulfilled' : 'Asset pack status updated'},
+      ${
+        input.status === 'fulfilled'
+          ? `Synergi ha resuelto la solicitud ${updated.title}${deliveredAssetId ? ' y ha publicado un nuevo asset.' : '.'}`
+          : `Synergi ha actualizado la solicitud ${updated.title} a ${input.status}.`
+      }
+    );
+  `
+
+  const hydratedRows = await listAdminPartnerAssetPackRequests({ limit: 100 })
+  const request = hydratedRows.find((item) => item.id === input.id) || null
+
+  return {
+    request,
+    deliveredAssetId,
+  }
+}
+
+export async function createAdminPartnerAsset(input: {
+  partnerAccountId: string
+  title: string
+  description?: string | null
+  assetKind?: PartnerAssetRecord['asset_kind']
+  accessLevel?: PartnerAssetRecord['access_level']
+  assetUrl?: string | null
+  assetBody?: string | null
+  contentFormat?: PartnerAssetRecord['content_format']
+  publishedBy: string
+}) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const rows = await sql<PartnerAssetRecord>`
+    INSERT INTO partner_assets (
+      partner_account_id,
+      title,
+      description,
+      asset_kind,
+      access_level,
+      asset_url,
+      asset_body,
+      content_format,
+      download_count,
+      review_status,
+      reviewed_at
+    )
+    VALUES (
+      ${input.partnerAccountId},
+      ${input.title.trim()},
+      ${input.description?.trim() || null},
+      ${input.assetKind || 'document'},
+      ${input.accessLevel || 'shared'},
+      ${input.assetUrl?.trim() || null},
+      ${input.assetBody?.trim() || null},
+      ${input.contentFormat || 'markdown'},
+      0,
+      'new',
+      NULL
+    )
+    RETURNING
+      id,
+      partner_account_id,
+      title,
+      description,
+      asset_kind,
+      access_level,
+      asset_url,
+      asset_body,
+      content_format,
+      download_count,
+      review_status,
+      reviewed_at,
+      published_at;
+  `
+
+  const asset = rows[0]
+  if (!asset) return null
+
+  await sql`
+    INSERT INTO partner_activity_events (
+      partner_account_id,
+      event_type,
+      title,
+      description
+    )
+    VALUES (
+      ${input.partnerAccountId},
+      'asset_published',
+      ${'Asset published'},
+      ${`Synergi ha publicado el asset ${asset.title} para el partner.`}
+    );
+  `
+
+  return asset
 }
