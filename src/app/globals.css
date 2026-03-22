@@ -503,29 +503,54 @@ input {
 .synergi-captcha-block {
   display: grid;
   gap: 12px;
-  padding: 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(212, 175, 55, 0.14);
-  background: rgba(10, 48, 58, 0.22);
 }
 
 .synergi-captcha-label {
   margin: 0;
-  color: var(--synergi-champagne);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  color: var(--synergi-muted);
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .synergi-captcha-shell {
-  overflow-x: auto;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  background:
+    radial-gradient(120% 90% at 0% 50%, rgba(34, 112, 106, 0.28) 0%, rgba(34, 112, 106, 0.08) 45%, transparent 72%),
+    radial-gradient(120% 90% at 100% 50%, rgba(28, 96, 104, 0.24) 0%, rgba(28, 96, 104, 0.08) 45%, transparent 72%),
+    radial-gradient(100% 110% at 50% 58%, rgba(6, 31, 41, 0.72) 0%, rgba(7, 35, 46, 0.9) 62%, rgba(8, 39, 50, 0.92) 100%),
+    linear-gradient(155deg, rgba(17, 78, 81, 0.5) 0%, rgba(10, 49, 64, 0.78) 52%, rgba(8, 42, 56, 0.88) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 12px 28px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.synergi-captcha-widget-frame {
+  display: inline-flex;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(97, 148, 143, 0.28);
+  background:
+    radial-gradient(150% 120% at 50% 100%, rgba(4, 21, 29, 0.92) 0%, rgba(5, 24, 33, 0.9) 60%, rgba(7, 30, 40, 0.86) 100%),
+    linear-gradient(160deg, rgba(7, 36, 48, 0.86) 0%, rgba(8, 40, 54, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 18px rgba(0, 0, 0, 0.26);
+}
+
+.synergi-captcha-widget-frame iframe {
+  border-radius: 8px;
+  max-width: 100%;
 }
 
 .synergi-captcha-help {
   margin: 0;
   color: var(--synergi-muted);
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   line-height: 1.6;
 }
 
@@ -601,5 +626,12 @@ input {
 
   .synergi-support-grid {
     grid-template-columns: 1fr;
+  }
+
+  .synergi-captcha-widget-frame {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
   }
 }

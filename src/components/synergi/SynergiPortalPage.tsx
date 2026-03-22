@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import Script from 'next/script'
 import { ArrowRight, KeyRound, ShieldCheck, Sparkles, UserRoundPlus } from 'lucide-react'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 
@@ -15,9 +14,11 @@ declare global {
         container: HTMLElement,
         parameters: {
           sitekey: string
+          size?: 'normal' | 'compact'
           callback: (token: string) => void
           'expired-callback'?: () => void
           'error-callback'?: () => void
+          theme?: 'light' | 'dark'
         }
       ) => number
       reset: (widgetId?: number) => void
@@ -39,7 +40,7 @@ export function SynergiPortalPage() {
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
-  const [captchaScriptReady, setCaptchaScriptReady] = useState(false)
+  const [captchaReady, setCaptchaReady] = useState(!recaptchaSiteKey)
   const captchaContainerRef = useRef<HTMLDivElement | null>(null)
   const captchaWidgetIdRef = useRef<number | null>(null)
 
@@ -55,38 +56,66 @@ export function SynergiPortalPage() {
   }, [])
 
   useEffect(() => {
-    if (!recaptchaSiteKey || !captchaScriptReady) return
-    if (!window.grecaptcha || !captchaContainerRef.current || captchaWidgetIdRef.current !== null) return
+    if (!recaptchaSiteKey) {
+      setCaptchaReady(false)
+      return
+    }
 
     const renderWidget = () => {
-      if (!window.grecaptcha || !captchaContainerRef.current || captchaWidgetIdRef.current !== null) return
-      if (typeof window.grecaptcha.render !== 'function') {
+      const api = window.grecaptcha
+      const container = captchaContainerRef.current
+      if (!api || !container || captchaWidgetIdRef.current !== null) return
+      if (typeof api.render !== 'function') {
         setNotice(t('captchaUnavailable'))
         return
       }
 
-      captchaWidgetIdRef.current = window.grecaptcha.render(captchaContainerRef.current, {
-        sitekey: recaptchaSiteKey,
-        callback: (token: string) => {
-          window.onSynergiRecaptchaVerified?.(token)
-        },
-        'expired-callback': () => {
-          setCaptchaToken(null)
-        },
-        'error-callback': () => {
-          setCaptchaToken(null)
-          setNotice(t('captchaError'))
-        },
-      })
+      const isMobileViewport = window.matchMedia('(max-width: 420px)').matches
+      const mount = () => {
+        captchaWidgetIdRef.current = api.render(container, {
+          sitekey: recaptchaSiteKey,
+          theme: 'dark',
+          size: isMobileViewport ? 'compact' : 'normal',
+          callback: (token: string) => {
+            window.onSynergiRecaptchaVerified?.(token)
+          },
+          'expired-callback': () => {
+            setCaptchaToken(null)
+          },
+          'error-callback': () => {
+            setCaptchaToken(null)
+          },
+        })
+        setCaptchaReady(true)
+      }
+
+      if (typeof api.ready === 'function') {
+        api.ready(mount)
+        return
+      }
+
+      mount()
     }
 
-    if (typeof window.grecaptcha.ready === 'function') {
-      window.grecaptcha.ready(renderWidget)
+    if (window.grecaptcha) {
+      renderWidget()
       return
     }
 
-    renderWidget()
-  }, [captchaScriptReady, recaptchaSiteKey, t])
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-synergi-recaptcha="true"]')
+    if (existingScript) {
+      existingScript.addEventListener('load', renderWidget, { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://www.google.com/recaptcha/api.js?render=explicit'
+    script.async = true
+    script.defer = true
+    script.dataset.synergiRecaptcha = 'true'
+    script.addEventListener('load', renderWidget, { once: true })
+    document.head.appendChild(script)
+  }, [recaptchaSiteKey, t])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -110,13 +139,6 @@ export function SynergiPortalPage() {
 
   return (
     <main className="synergi-page">
-      {recaptchaSiteKey ? (
-        <Script
-          src="https://www.google.com/recaptcha/api.js?render=explicit"
-          strategy="afterInteractive"
-          onReady={() => setCaptchaScriptReady(true)}
-        />
-      ) : null}
       <div className="synergi-noise" />
       <section className="synergi-shell">
         <header className="synergi-topbar">
@@ -242,9 +264,13 @@ export function SynergiPortalPage() {
                 {recaptchaSiteKey ? (
                   <>
                     <div className="synergi-captcha-shell">
-                      <div ref={captchaContainerRef} />
+                      <div ref={captchaContainerRef} className="synergi-captcha-widget-frame" />
                     </div>
-                    {!captchaToken ? <p className="synergi-captcha-help">{t('captchaHelp')}</p> : null}
+                    {!captchaToken ? (
+                      <p className="synergi-captcha-help">
+                        {captchaReady ? t('captchaHelp') : t('captchaLoading')}
+                      </p>
+                    ) : null}
                   </>
                 ) : (
                   <p className="synergi-captcha-help">{t('captchaMissing')}</p>
