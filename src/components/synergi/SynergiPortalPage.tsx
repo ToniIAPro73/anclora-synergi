@@ -36,6 +36,8 @@ export function SynergiPortalPage() {
     email: '',
     speciality: '',
     vision: '',
+    privacyAccepted: false,
+    newsletterOptIn: false,
   })
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
@@ -107,7 +109,7 @@ export function SynergiPortalPage() {
     document.head.appendChild(script)
   }, [recaptchaSiteKey, t])
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (recaptchaSiteKey && !captchaToken) {
       setNotice(t('captchaRequired'))
@@ -117,14 +119,53 @@ export function SynergiPortalPage() {
     setSubmitting(true)
     setNotice(null)
 
-    window.setTimeout(() => {
-      setSubmitting(false)
+    try {
+      const response = await fetch('/api/partner-admission', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          brand: form.brand,
+          email: form.email,
+          speciality: form.speciality,
+          vision: form.vision,
+          privacyAccepted: form.privacyAccepted,
+          newsletterOptIn: form.newsletterOptIn,
+          submissionLanguage: language,
+          captchaToken,
+        }),
+      })
+
+      const body = (await response.json().catch(() => null)) as
+        | { message?: string; error?: string; details?: string[] }
+        | null
+
+      if (!response.ok) {
+        const detailText = body?.details?.length ? ` (${body.details.join(', ')})` : ''
+        throw new Error((body?.error || t('admissionError')) + detailText)
+      }
+
+      setNotice(body?.message || t('admissionSuccess'))
+      setForm({
+        name: '',
+        brand: '',
+        email: '',
+        speciality: '',
+        vision: '',
+        privacyAccepted: false,
+        newsletterOptIn: false,
+      })
       setCaptchaToken(null)
       if (window.grecaptcha && captchaWidgetIdRef.current !== null) {
         window.grecaptcha.reset(captchaWidgetIdRef.current)
       }
-      setNotice(t('admissionPending'))
-    }, 480)
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : t('admissionError'))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -267,12 +308,33 @@ export function SynergiPortalPage() {
                 )}
               </div>
 
+              <label className="synergi-checkrow">
+                <input
+                  type="checkbox"
+                  checked={form.newsletterOptIn}
+                  onChange={(event) => setForm((prev) => ({ ...prev, newsletterOptIn: event.target.checked }))}
+                  disabled={submitting}
+                />
+                <span>{t('newsletterOptIn')}</span>
+              </label>
+
+              <label className="synergi-checkrow synergi-checkrow-start">
+                <input
+                  type="checkbox"
+                  checked={form.privacyAccepted}
+                  onChange={(event) => setForm((prev) => ({ ...prev, privacyAccepted: event.target.checked }))}
+                  disabled={submitting}
+                  required
+                />
+                <span>{t('privacyAccepted')}</span>
+              </label>
+
               {notice ? <p className="synergi-notice">{notice}</p> : null}
 
               <button
                 className="synergi-button"
                 type="submit"
-                disabled={submitting || !recaptchaSiteKey || !captchaToken}
+                disabled={submitting || !recaptchaSiteKey || !captchaToken || !form.privacyAccepted}
               >
                 {submitting ? t('admissionSubmitting') : t('admissionCta')}
               </button>
