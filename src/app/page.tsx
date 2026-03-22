@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
+import { SynergiPortalPage } from '@/components/synergi/SynergiPortalPage'
 
 export default function HomePage() {
-  redirect('/login')
+  return <SynergiPortalPage />
 }
-

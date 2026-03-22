@@ -168,6 +168,10 @@ input {
   margin-top: 26px;
 }
 
+.synergi-portal-grid {
+  align-items: start;
+}
+
 .synergi-panel {
   border: 1px solid rgba(212, 175, 55, 0.18);
   border-radius: 34px;
@@ -185,6 +189,12 @@ input {
 
 .synergi-form-panel {
   padding: 34px;
+}
+
+.synergi-landing-hero {
+  display: grid;
+  gap: 24px;
+  padding: 42px 44px;
 }
 
 .synergi-eyebrow,
@@ -244,6 +254,12 @@ input {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-top: 22px;
+}
+
+.synergi-signal-stack {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
 }
 
 .synergi-signal-card,
@@ -397,6 +413,78 @@ input {
   margin-top: 18px;
 }
 
+.synergi-hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.synergi-hero-pills span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(144, 206, 214, 0.18);
+  background: rgba(8, 31, 40, 0.42);
+  color: var(--synergi-cream);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.synergi-section-intro {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.synergi-section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(212, 175, 55, 0.14);
+  color: var(--synergi-champagne);
+  flex: 0 0 auto;
+}
+
+.synergi-section-title {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+}
+
+.synergi-section-copy {
+  margin: 12px 0 0;
+  color: var(--synergi-muted);
+  line-height: 1.8;
+}
+
+.synergi-two-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.synergi-textarea {
+  min-height: 136px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  resize: vertical;
+}
+
+.synergi-login-cta-box {
+  margin-top: 18px;
+}
+
+.synergi-button-link {
+  width: 100%;
+}
+
 .synergi-support-card {
   display: block;
   padding: 20px 18px;
@@ -425,6 +513,10 @@ input {
   }
 
   .synergi-signals {
+    grid-template-columns: 1fr;
+  }
+
+  .synergi-two-cols {
     grid-template-columns: 1fr;
   }
 }
@@ -457,4 +549,3 @@ input {
     grid-template-columns: 1fr;
   }
 }
-
