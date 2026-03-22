@@ -109,6 +109,37 @@ CREATE TABLE IF NOT EXISTS partner_opportunities (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS partner_referrals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
+  referral_name TEXT NOT NULL,
+  referral_company TEXT,
+  referral_email TEXT,
+  referral_phone TEXT,
+  referral_kind TEXT NOT NULL DEFAULT 'buyer',
+  region_label TEXT,
+  budget_label TEXT,
+  referral_notes TEXT,
+  status TEXT NOT NULL DEFAULT 'submitted',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS partner_asset_pack_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  pack_type TEXT NOT NULL DEFAULT 'custom',
+  request_notes TEXT,
+  requested_assets JSONB NOT NULL DEFAULT '[]'::jsonb,
+  target_region TEXT,
+  needed_by_label TEXT,
+  status TEXT NOT NULL DEFAULT 'submitted',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  resolved_at TIMESTAMPTZ
+);
+
 CREATE TABLE IF NOT EXISTS partner_activity_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
@@ -126,3 +157,15 @@ CREATE INDEX IF NOT EXISTS idx_partner_admissions_status
 
 CREATE INDEX IF NOT EXISTS idx_partner_accounts_email
   ON partner_accounts (email);
+
+CREATE INDEX IF NOT EXISTS idx_partner_referrals_account_created_at
+  ON partner_referrals (partner_account_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_partner_referrals_status
+  ON partner_referrals (status);
+
+CREATE INDEX IF NOT EXISTS idx_partner_asset_pack_requests_account_created_at
+  ON partner_asset_pack_requests (partner_account_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_partner_asset_pack_requests_status
+  ON partner_asset_pack_requests (status);

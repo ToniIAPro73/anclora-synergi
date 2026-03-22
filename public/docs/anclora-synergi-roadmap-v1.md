@@ -96,6 +96,18 @@ Entregables:
 - actividad reciente
 - CTA operativos para colaboración y referrals
 
+### Fase 5b. Workspace partner v2
+
+Objetivo:
+- profundizar el workspace hacia operación partner real sin convertirlo aún en un CRM completo
+
+Entregables:
+- referrals operativos por partner con respuesta persistida
+- solicitudes de asset packs desde el workspace
+- estado visible de solicitudes de packs
+- timeline de actividad con trazabilidad útil
+- modelo Neon preparado para evolución posterior
+
 ### Fase 6. Hardening y operación real
 
 Objetivo:
@@ -126,6 +138,7 @@ Entregables:
 
 - `synergi-partner-auth`
 - `synergi-partner-workspace-v1`
+- `synergi-partner-workspace-v2`
 - `synergi-credential-lifecycle`
 
 ### Bloque plataforma

@@ -32,17 +32,38 @@
     },
     {
       "id": "SYNERGI-WORKSPACE-001",
-      "title": "Partner workspace and first authenticated flows",
-      "status": "PENDING",
+      "title": "Partner workspace v1 foundation and first authenticated flows",
+      "status": "DONE",
       "assigned_to": "Agent A",
       "dependencies": ["SYNERGI-OPS-001"]
+    },
+    {
+      "id": "SYNERGI-WORKSPACE-002",
+      "title": "Workspace v2 product and UX for partner referrals, asset pack requests and traceability",
+      "status": "DONE",
+      "assigned_to": "Agent A",
+      "dependencies": ["SYNERGI-WORKSPACE-001"]
+    },
+    {
+      "id": "SYNERGI-WORKSPACE-003",
+      "title": "Workspace v2 backend and Neon model for referrals, asset pack requests and activity events",
+      "status": "DONE",
+      "assigned_to": "Agent C",
+      "dependencies": ["SYNERGI-WORKSPACE-001", "SYNERGI-WORKSPACE-002", "SYNERGI-DATA-001"]
+    },
+    {
+      "id": "SYNERGI-WORKSPACE-004",
+      "title": "Workspace v2 integration, access rules and QA hardening",
+      "status": "DONE",
+      "assigned_to": "Agent D",
+      "dependencies": ["SYNERGI-WORKSPACE-002", "SYNERGI-WORKSPACE-003"]
     },
     {
       "id": "SYNERGI-QA-001",
       "title": "End-to-end hardening, QA and deployment validation",
       "status": "PENDING",
       "assigned_to": "Agent D",
-      "dependencies": ["SYNERGI-WORKSPACE-001"]
+      "dependencies": ["SYNERGI-WORKSPACE-004"]
     }
   ]
 }

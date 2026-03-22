@@ -393,6 +393,23 @@ input {
   box-shadow: 0 0 0 1px rgba(234, 217, 160, 0.34), 0 18px 40px rgba(4, 13, 18, 0.2);
 }
 
+.synergi-select {
+  width: 100%;
+  min-height: 56px;
+  border: 1px solid rgba(212, 175, 55, 0.16);
+  border-radius: 18px;
+  background: rgba(10, 48, 58, 0.42);
+  color: var(--synergi-cream);
+  padding: 0 18px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.synergi-select:focus {
+  outline: none;
+  border-color: rgba(234, 217, 160, 0.7);
+  box-shadow: 0 0 0 1px rgba(234, 217, 160, 0.34), 0 18px 40px rgba(4, 13, 18, 0.2);
+}
+
 .synergi-checkrow {
   display: flex;
   gap: 12px;
@@ -958,6 +975,13 @@ input {
   gap: 18px;
 }
 
+.synergi-workspace-assets-layout,
+.synergi-workspace-referrals-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
 .synergi-workspace-opportunity-card,
 .synergi-workspace-opportunity-detail {
   text-align: left;
@@ -1050,8 +1074,82 @@ input {
   border-color: rgba(212, 149, 129, 0.32);
 }
 
+.synergi-workspace-opportunity-response.is-submitted {
+  color: #c8ecf3;
+  border-color: rgba(141, 211, 223, 0.26);
+}
+
+.synergi-workspace-opportunity-response.is-reviewing,
+.synergi-workspace-opportunity-response.is-qualified,
+.synergi-workspace-opportunity-response.is-introduced {
+  color: #e9ddb1;
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.synergi-workspace-opportunity-response.is-closed {
+  color: #dff7c8;
+  border-color: rgba(180, 225, 147, 0.34);
+}
+
+.synergi-workspace-opportunity-response.is-declined {
+  color: #f1d0c4;
+  border-color: rgba(212, 149, 129, 0.32);
+}
+
 .synergi-workspace-logout {
   margin-top: 22px;
+}
+
+.synergi-workspace-referral-card {
+  border-color: rgba(144, 206, 214, 0.18);
+  background: linear-gradient(180deg, rgba(9, 42, 54, 0.9) 0%, rgba(8, 31, 40, 0.82) 100%);
+}
+
+.synergi-workspace-referral-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.synergi-workspace-module-link {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.synergi-workspace-asset-pack-request {
+  min-height: 122px;
+}
+
+.synergi-workspace-pack-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.synergi-workspace-pack-card {
+  border-color: rgba(212, 175, 55, 0.18);
+  background:
+    linear-gradient(180deg, rgba(16, 53, 65, 0.92) 0%, rgba(8, 30, 39, 0.86) 100%);
+}
+
+.synergi-workspace-pack-head {
+  display: grid;
+  gap: 8px;
+}
+
+.synergi-workspace-pack-head span {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.14);
+  color: var(--synergi-champagne-soft);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.synergi-workspace-pack-head strong {
+  font-family: var(--font-display);
+  font-size: 1.34rem;
 }
 
 @media (max-width: 1100px) {
@@ -1070,10 +1168,14 @@ input {
   .synergi-review-summary-grid,
   .synergi-review-grid,
   .synergi-workspace-grid,
+  .synergi-workspace-assets-layout,
   .synergi-workspace-opportunities-layout,
+  .synergi-workspace-referrals-layout,
+  .synergi-workspace-pack-grid,
   .synergi-review-meta-grid,
   .synergi-review-actions,
-  .synergi-workspace-action-grid {
+  .synergi-workspace-action-grid,
+  .synergi-workspace-referral-actions {
     grid-template-columns: 1fr;
   }
 }

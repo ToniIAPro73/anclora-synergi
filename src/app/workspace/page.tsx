@@ -24,6 +24,8 @@ export default async function WorkspacePage() {
       profile={bundle.profile}
       moduleOrder={bundle.moduleOrder}
       assets={bundle.assets}
+      referrals={bundle.referrals}
+      assetPackRequests={bundle.assetPackRequests}
       opportunities={bundle.opportunities}
       activity={bundle.activity}
     />

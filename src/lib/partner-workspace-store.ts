@@ -11,6 +11,7 @@ export type PartnerModuleKey =
   | 'overview'
   | 'partner-profile'
   | 'assets-documents'
+  | 'referrals'
   | 'opportunities'
   | 'activity'
 
@@ -60,10 +61,50 @@ export type PartnerOpportunityRecord = {
   created_at: string
 }
 
+export type PartnerReferralRecord = {
+  id: string
+  partner_account_id: string
+  referral_name: string
+  referral_company: string | null
+  referral_email: string | null
+  referral_phone: string | null
+  referral_kind: 'buyer' | 'seller' | 'investor' | 'introducer' | 'partner'
+  region_label: string | null
+  budget_label: string | null
+  referral_notes: string | null
+  status: 'submitted' | 'reviewing' | 'qualified' | 'introduced' | 'closed' | 'declined'
+  created_at: string
+  updated_at: string
+}
+
+export type PartnerAssetPackRequestRecord = {
+  id: string
+  partner_account_id: string
+  title: string
+  pack_type: 'market-pack' | 'brand-pack' | 'area-brief' | 'custom'
+  request_notes: string | null
+  requested_assets: string[]
+  target_region: string | null
+  needed_by_label: string | null
+  status: 'submitted' | 'reviewing' | 'fulfilled' | 'declined'
+  created_at: string
+  updated_at: string
+  resolved_at: string | null
+}
+
 export type PartnerActivityEventRecord = {
   id: string
   partner_account_id: string
-  event_type: 'activation' | 'asset_published' | 'asset_reviewed' | 'asset_downloaded' | 'opportunity_created' | 'opportunity_updated' | 'profile_updated'
+  event_type:
+    | 'activation'
+    | 'asset_published'
+    | 'asset_reviewed'
+    | 'asset_downloaded'
+    | 'opportunity_created'
+    | 'opportunity_updated'
+    | 'profile_updated'
+    | 'referral_submitted'
+    | 'asset_pack_requested'
   title: string
   description: string | null
   created_at: string
@@ -72,6 +113,8 @@ export type PartnerActivityEventRecord = {
 type WorkspaceBundle = {
   profile: PartnerProfileRecord
   assets: PartnerAssetRecord[]
+  referrals: PartnerReferralRecord[]
+  assetPackRequests: PartnerAssetPackRequestRecord[]
   opportunities: PartnerOpportunityRecord[]
   activity: PartnerActivityEventRecord[]
   moduleOrder: PartnerModuleKey[]
@@ -100,13 +143,13 @@ function inferProfileType(account: PartnerAccountRecord): PartnerProfileType {
 function getDefaultModuleOrder(profileType: PartnerProfileType): PartnerModuleKey[] {
   switch (profileType) {
     case 'referral-partner':
-      return ['overview', 'opportunities', 'activity', 'partner-profile', 'assets-documents']
+      return ['overview', 'referrals', 'opportunities', 'activity', 'partner-profile', 'assets-documents']
     case 'market-intelligence':
-      return ['overview', 'assets-documents', 'activity', 'partner-profile', 'opportunities']
+      return ['overview', 'assets-documents', 'referrals', 'activity', 'partner-profile', 'opportunities']
     case 'project-collaboration':
-      return ['overview', 'opportunities', 'assets-documents', 'activity', 'partner-profile']
+      return ['overview', 'opportunities', 'referrals', 'assets-documents', 'activity', 'partner-profile']
     default:
-      return ['overview', 'partner-profile', 'assets-documents', 'opportunities', 'activity']
+      return ['overview', 'partner-profile', 'assets-documents', 'referrals', 'opportunities', 'activity']
   }
 }
 
@@ -203,6 +246,41 @@ async function ensurePartnerWorkspaceSchema() {
   await sql`
     ALTER TABLE partner_opportunities
       ADD COLUMN IF NOT EXISTS value_label TEXT;
+  `
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS partner_referrals (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
+      referral_name TEXT NOT NULL,
+      referral_company TEXT,
+      referral_email TEXT,
+      referral_phone TEXT,
+      referral_kind TEXT NOT NULL DEFAULT 'buyer',
+      region_label TEXT,
+      budget_label TEXT,
+      referral_notes TEXT,
+      status TEXT NOT NULL DEFAULT 'submitted',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS partner_asset_pack_requests (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      partner_account_id UUID NOT NULL REFERENCES partner_accounts(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      pack_type TEXT NOT NULL DEFAULT 'custom',
+      request_notes TEXT,
+      requested_assets JSONB NOT NULL DEFAULT '[]'::jsonb,
+      target_region TEXT,
+      needed_by_label TEXT,
+      status TEXT NOT NULL DEFAULT 'submitted',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      resolved_at TIMESTAMPTZ
+    );
   `
 
   await sql`
@@ -435,6 +513,9 @@ export async function getOrCreatePartnerWorkspaceBundle(
     LIMIT 6;
   `
 
+  const referralsRows = await listPartnerReferrals(account.id)
+  const assetPackRequestRows = await listPartnerAssetPackRequests(account.id)
+
   const activityRows = await sql<PartnerActivityEventRecord>`
     SELECT
       id,
@@ -452,6 +533,8 @@ export async function getOrCreatePartnerWorkspaceBundle(
   return {
     profile,
     assets: assetsRows,
+    referrals: referralsRows,
+    assetPackRequests: assetPackRequestRows,
     opportunities: opportunitiesRows,
     activity: activityRows,
     moduleOrder: getDefaultModuleOrder(profile.partner_profile_type),
@@ -690,4 +773,216 @@ export async function updatePartnerOpportunityResponse(
   `
 
   return opportunity
+}
+
+export async function listPartnerReferrals(partnerAccountId: string) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  return sql<PartnerReferralRecord>`
+    SELECT
+      id,
+      partner_account_id,
+      referral_name,
+      referral_company,
+      referral_email,
+      referral_phone,
+      referral_kind,
+      region_label,
+      budget_label,
+      referral_notes,
+      status,
+      created_at,
+      updated_at
+    FROM partner_referrals
+    WHERE partner_account_id = ${partnerAccountId}
+    ORDER BY created_at DESC
+    LIMIT 24;
+  `
+}
+
+export async function createPartnerReferral(
+  partnerAccountId: string,
+  input: {
+    referralName: string
+    referralCompany?: string | null
+    referralEmail?: string | null
+    referralPhone?: string | null
+    referralKind: 'buyer' | 'seller' | 'investor' | 'introducer' | 'partner'
+    regionLabel?: string | null
+    budgetLabel?: string | null
+    referralNotes?: string | null
+  }
+) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const rows = await sql<PartnerReferralRecord>`
+    INSERT INTO partner_referrals (
+      partner_account_id,
+      referral_name,
+      referral_company,
+      referral_email,
+      referral_phone,
+      referral_kind,
+      region_label,
+      budget_label,
+      referral_notes,
+      status,
+      updated_at
+    )
+    VALUES (
+      ${partnerAccountId},
+      ${input.referralName.trim()},
+      ${input.referralCompany?.trim() || null},
+      ${input.referralEmail?.trim() || null},
+      ${input.referralPhone?.trim() || null},
+      ${input.referralKind},
+      ${input.regionLabel?.trim() || null},
+      ${input.budgetLabel?.trim() || null},
+      ${input.referralNotes?.trim() || null},
+      'submitted',
+      NOW()
+    )
+    RETURNING
+      id,
+      partner_account_id,
+      referral_name,
+      referral_company,
+      referral_email,
+      referral_phone,
+      referral_kind,
+      region_label,
+      budget_label,
+      referral_notes,
+      status,
+      created_at,
+      updated_at;
+  `
+
+  const referral = rows[0]
+  if (!referral) return null
+
+  await sql`
+    INSERT INTO partner_activity_events (
+      partner_account_id,
+      event_type,
+      title,
+      description
+    )
+    VALUES (
+      ${partnerAccountId},
+      'referral_submitted',
+      ${'Referral submitted'},
+      ${`El partner ha enviado el referral ${referral.referral_name}.`}
+    );
+  `
+
+  return referral
+}
+
+export async function listPartnerAssetPackRequests(partnerAccountId: string) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const rows = await sql<Omit<PartnerAssetPackRequestRecord, 'requested_assets'> & { requested_assets: unknown }>`
+    SELECT
+      id,
+      partner_account_id,
+      title,
+      pack_type,
+      request_notes,
+      requested_assets,
+      target_region,
+      needed_by_label,
+      status,
+      created_at,
+      updated_at,
+      resolved_at
+    FROM partner_asset_pack_requests
+    WHERE partner_account_id = ${partnerAccountId}
+    ORDER BY created_at DESC
+    LIMIT 24;
+  `
+
+  return rows.map((row) => ({
+    ...row,
+    requested_assets: normalizeStringArray(row.requested_assets),
+  })) as PartnerAssetPackRequestRecord[]
+}
+
+export async function createPartnerAssetPackRequest(
+  partnerAccountId: string,
+  input: {
+    title: string
+    packType: 'market-pack' | 'brand-pack' | 'area-brief' | 'custom'
+    requestNotes?: string | null
+    requestedAssets: string[]
+    targetRegion?: string | null
+    neededByLabel?: string | null
+  }
+) {
+  globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady ??= ensurePartnerWorkspaceSchema()
+  await globalThis.__ancloraSynergiPartnerWorkspaceSchemaReady
+
+  const rows = await sql<Omit<PartnerAssetPackRequestRecord, 'requested_assets'> & { requested_assets: unknown }>`
+    INSERT INTO partner_asset_pack_requests (
+      partner_account_id,
+      title,
+      pack_type,
+      request_notes,
+      requested_assets,
+      target_region,
+      needed_by_label,
+      status,
+      updated_at
+    )
+    VALUES (
+      ${partnerAccountId},
+      ${input.title.trim()},
+      ${input.packType},
+      ${input.requestNotes?.trim() || null},
+      ${JSON.stringify(input.requestedAssets)},
+      ${input.targetRegion?.trim() || null},
+      ${input.neededByLabel?.trim() || null},
+      'submitted',
+      NOW()
+    )
+    RETURNING
+      id,
+      partner_account_id,
+      title,
+      pack_type,
+      request_notes,
+      requested_assets,
+      target_region,
+      needed_by_label,
+      status,
+      created_at,
+      updated_at,
+      resolved_at;
+  `
+
+  const rawRequest = rows[0]
+  if (!rawRequest) return null
+
+  await sql`
+    INSERT INTO partner_activity_events (
+      partner_account_id,
+      event_type,
+      title,
+      description
+    )
+    VALUES (
+      ${partnerAccountId},
+      'asset_pack_requested',
+      ${'Asset pack requested'},
+      ${`El partner ha solicitado el asset pack ${rawRequest.title}.`}
+    );
+  `
+
+  return {
+    ...rawRequest,
+    requested_assets: normalizeStringArray(rawRequest.requested_assets),
+  } as PartnerAssetPackRequestRecord
 }

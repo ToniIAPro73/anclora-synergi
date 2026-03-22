@@ -3,14 +3,16 @@
 import { useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BriefcaseBusiness, FileStack, LayoutGrid, RadioTower, UserRound } from 'lucide-react'
+import { BriefcaseBusiness, FileStack, LayoutGrid, RadioTower, Sparkles, UserRound } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type {
   PartnerActivityEventRecord,
+  PartnerAssetPackRequestRecord,
   PartnerAssetRecord,
   PartnerModuleKey,
   PartnerOpportunityRecord,
   PartnerProfileRecord,
+  PartnerReferralRecord,
 } from '@/lib/partner-workspace-store'
 
 type WorkspaceProps = {
@@ -22,6 +24,8 @@ type WorkspaceProps = {
   profile: PartnerProfileRecord
   moduleOrder: PartnerModuleKey[]
   assets: PartnerAssetRecord[]
+  referrals: PartnerReferralRecord[]
+  assetPackRequests: PartnerAssetPackRequestRecord[]
   opportunities: PartnerOpportunityRecord[]
   activity: PartnerActivityEventRecord[]
 }
@@ -30,6 +34,7 @@ const MODULE_ICONS: Record<PartnerModuleKey, typeof LayoutGrid> = {
   overview: LayoutGrid,
   'partner-profile': UserRound,
   'assets-documents': FileStack,
+  referrals: Sparkles,
   opportunities: BriefcaseBusiness,
   activity: RadioTower,
 }
@@ -80,6 +85,8 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
   const { language, setLanguage, t } = useI18n()
   const [activeModule, setActiveModule] = useState<PartnerModuleKey>(props.moduleOrder[0] || 'overview')
   const [assets, setAssets] = useState(props.assets)
+  const [referrals, setReferrals] = useState(props.referrals)
+  const [assetPackRequests, setAssetPackRequests] = useState(props.assetPackRequests)
   const [opportunities, setOpportunities] = useState(props.opportunities)
   const [selectedOpportunityId, setSelectedOpportunityId] = useState<string | null>(props.opportunities[0]?.id || null)
   const [opportunityNotes, setOpportunityNotes] = useState<Record<string, string>>(
@@ -89,6 +96,8 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
   const [assetBusyId, setAssetBusyId] = useState<string | null>(null)
   const [downloadingAssetId, setDownloadingAssetId] = useState<string | null>(null)
   const [opportunityBusyId, setOpportunityBusyId] = useState<string | null>(null)
+  const [submittingReferral, setSubmittingReferral] = useState(false)
+  const [submittingAssetPack, setSubmittingAssetPack] = useState(false)
   const [profileNotice, setProfileNotice] = useState<string | null>(null)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [moduleNotice, setModuleNotice] = useState<string | null>(null)
@@ -102,7 +111,24 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
     linkedinUrl: props.profile.linkedin_url || '',
     instagramUrl: props.profile.instagram_url || '',
   })
-
+  const [referralForm, setReferralForm] = useState({
+    referralName: '',
+    referralCompany: '',
+    referralEmail: '',
+    referralPhone: '',
+    referralKind: 'buyer' as PartnerReferralRecord['referral_kind'],
+    regionLabel: '',
+    budgetLabel: '',
+    referralNotes: '',
+  })
+  const [assetPackForm, setAssetPackForm] = useState({
+    title: '',
+    packType: 'custom' as PartnerAssetPackRequestRecord['pack_type'],
+    requestedAssets: '',
+    targetRegion: '',
+    neededByLabel: '',
+    requestNotes: '',
+  })
   async function handleLogout() {
     await fetch('/api/partner/session', { method: 'DELETE' })
     window.location.assign('/login')
@@ -197,6 +223,91 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
       setModuleError(downloadError instanceof Error ? downloadError.message : t('workspaceAssetDownloadError'))
     } finally {
       setDownloadingAssetId(null)
+    }
+  }
+
+  async function handleReferralSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSubmittingReferral(true)
+    setModuleNotice(null)
+    setModuleError(null)
+
+    try {
+      const response = await fetch('/api/partner/referrals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(referralForm),
+      })
+      const body = (await response.json().catch(() => null)) as { error?: string; referral?: PartnerReferralRecord } | null
+
+      if (!response.ok || !body?.referral) {
+        throw new Error(body?.error || t('workspaceReferralSubmitError'))
+      }
+
+      setReferrals((current) => [body.referral!, ...current])
+      setReferralForm({
+        referralName: '',
+        referralCompany: '',
+        referralEmail: '',
+        referralPhone: '',
+        referralKind: 'buyer',
+        regionLabel: '',
+        budgetLabel: '',
+        referralNotes: '',
+      })
+      setModuleNotice(t('workspaceReferralSubmitSuccess'))
+    } catch (submitError) {
+      setModuleError(submitError instanceof Error ? submitError.message : t('workspaceReferralSubmitError'))
+    } finally {
+      setSubmittingReferral(false)
+    }
+  }
+
+  async function handleAssetPackSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSubmittingAssetPack(true)
+    setModuleNotice(null)
+    setModuleError(null)
+
+    try {
+      const response = await fetch('/api/partner/asset-pack-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...assetPackForm,
+          requestedAssets: assetPackForm.requestedAssets
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean),
+        }),
+      })
+      const body = (await response.json().catch(() => null)) as {
+        error?: string
+        request?: PartnerAssetPackRequestRecord
+      } | null
+
+      if (!response.ok || !body?.request) {
+        throw new Error(body?.error || t('workspaceAssetPackRequestError'))
+      }
+
+      setAssetPackRequests((current) => [body.request!, ...current])
+      setAssetPackForm({
+        title: '',
+        packType: 'custom',
+        requestedAssets: '',
+        targetRegion: '',
+        neededByLabel: '',
+        requestNotes: '',
+      })
+      setModuleNotice(t('workspaceAssetPackSubmitSuccess'))
+    } catch (submitError) {
+      setModuleError(submitError instanceof Error ? submitError.message : t('workspaceAssetPackRequestError'))
+    } finally {
+      setSubmittingAssetPack(false)
     }
   }
 
@@ -356,52 +467,153 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
 
   function renderAssets() {
     return (
-      <div className="synergi-workspace-stack">
-        {assets.length ? assets.map((asset) => (
-          <article key={asset.id} className="synergi-review-content-card">
-            <span>{asset.asset_kind}</span>
-            <p>{asset.title}</p>
-            <p className="synergi-workspace-muted">{asset.description || t('workspaceEmptyAssets')}</p>
-            <div className="synergi-workspace-inline-meta">
-              <span>{inferAssetFilename(asset.asset_url, asset.title)}</span>
-              <small>{`${normalizeLabel(asset.access_level)} · ${normalizeLabel(asset.asset_kind)}`}</small>
-            </div>
-            <div className="synergi-review-meta-grid synergi-workspace-meta-grid">
-              <div className="synergi-review-meta-card">
-                <span>{t('workspaceAssetStatus')}</span>
-                <strong>{t(`workspaceAssetStatus_${asset.review_status}`)}</strong>
+      <div className="synergi-workspace-assets-layout">
+        <section className="synergi-workspace-stack">
+          <div className="synergi-review-section-head">
+            <h3>{t('workspaceAssetsLibraryTitle')}</h3>
+            <p>{t('workspaceAssetsLibrarySubtitle')}</p>
+          </div>
+          {assets.length ? assets.map((asset) => (
+            <article key={asset.id} className="synergi-review-content-card">
+              <span>{asset.asset_kind}</span>
+              <p>{asset.title}</p>
+              <p className="synergi-workspace-muted">{asset.description || t('workspaceEmptyAssets')}</p>
+              <div className="synergi-workspace-inline-meta">
+                <span>{inferAssetFilename(asset.asset_url, asset.title)}</span>
+                <small>{`${normalizeLabel(asset.access_level)} · ${normalizeLabel(asset.asset_kind)}`}</small>
               </div>
-              <div className="synergi-review-meta-card">
-                <span>{t('workspaceAssetDownloads')}</span>
-                <strong>{asset.download_count}</strong>
+              <div className="synergi-review-meta-grid synergi-workspace-meta-grid">
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetStatus')}</span>
+                  <strong>{t(`workspaceAssetStatus_${asset.review_status}`)}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetDownloads')}</span>
+                  <strong>{asset.download_count}</strong>
+                </div>
               </div>
-            </div>
-            <div className="synergi-workspace-action-grid">
-              <button
-                type="button"
-                className="synergi-button synergi-workspace-action"
-                onClick={() => void handleAssetDownload(asset)}
-                disabled={downloadingAssetId === asset.id}
-              >
-                {downloadingAssetId === asset.id ? t('workspaceAssetDownloading') : t('workspaceAssetDownload')}
-              </button>
-              <button
-                type="button"
-                className="synergi-button synergi-workspace-action"
-                onClick={() => void handleAssetReview(asset.id)}
-                disabled={
-                  downloadingAssetId === asset.id ||
-                  assetBusyId === asset.id ||
-                  asset.review_status === 'reviewed'
+              <div className="synergi-workspace-action-grid">
+                <button
+                  type="button"
+                  className="synergi-button synergi-workspace-action"
+                  onClick={() => void handleAssetDownload(asset)}
+                  disabled={downloadingAssetId === asset.id}
+                >
+                  {downloadingAssetId === asset.id ? t('workspaceAssetDownloading') : t('workspaceAssetDownload')}
+                </button>
+                <button
+                  type="button"
+                  className="synergi-button synergi-workspace-action"
+                  onClick={() => void handleAssetReview(asset.id)}
+                  disabled={
+                    downloadingAssetId === asset.id ||
+                    assetBusyId === asset.id ||
+                    asset.review_status === 'reviewed'
+                  }
+                >
+                  {assetBusyId === asset.id ? t('workspaceAssetReviewing') : t('workspaceAssetReview')}
+                </button>
+              </div>
+            </article>
+          )) : (
+            <article className="synergi-review-empty">{t('workspaceEmptyAssets')}</article>
+          )}
+        </section>
+
+        <section className="synergi-workspace-stack">
+          <div className="synergi-review-section-head">
+            <h3>{t('workspaceAssetPacksTitle')}</h3>
+            <p>{t('workspaceAssetPacksSubtitle')}</p>
+          </div>
+
+          <form className="synergi-form synergi-workspace-form-card" onSubmit={handleAssetPackSubmit}>
+            <input
+              className="synergi-input"
+              placeholder={t('workspaceAssetPackTitle')}
+              value={assetPackForm.title}
+              onChange={(event) => setAssetPackForm((current) => ({ ...current, title: event.target.value }))}
+              disabled={submittingAssetPack}
+            />
+            <div className="synergi-two-cols">
+              <select
+                className="synergi-select"
+                value={assetPackForm.packType}
+                onChange={(event) =>
+                  setAssetPackForm((current) => ({
+                    ...current,
+                    packType: event.target.value as PartnerAssetPackRequestRecord['pack_type'],
+                  }))
                 }
+                disabled={submittingAssetPack}
               >
-                {assetBusyId === asset.id ? t('workspaceAssetReviewing') : t('workspaceAssetReview')}
-              </button>
+                {(['market-pack', 'brand-pack', 'area-brief', 'custom'] as const).map((type) => (
+                  <option key={type} value={type}>
+                    {t(`workspaceAssetPackType_${type}`)}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceAssetPackNeededBy')}
+                value={assetPackForm.neededByLabel}
+                onChange={(event) => setAssetPackForm((current) => ({ ...current, neededByLabel: event.target.value }))}
+                disabled={submittingAssetPack}
+              />
             </div>
-          </article>
-        )) : (
-          <article className="synergi-review-empty">{t('workspaceEmptyAssets')}</article>
-        )}
+            <input
+              className="synergi-input"
+              placeholder={t('workspaceAssetPackRegion')}
+              value={assetPackForm.targetRegion}
+              onChange={(event) => setAssetPackForm((current) => ({ ...current, targetRegion: event.target.value }))}
+              disabled={submittingAssetPack}
+            />
+            <input
+              className="synergi-input"
+              placeholder={t('workspaceAssetPackRequestedAssets')}
+              value={assetPackForm.requestedAssets}
+              onChange={(event) => setAssetPackForm((current) => ({ ...current, requestedAssets: event.target.value }))}
+              disabled={submittingAssetPack}
+            />
+            <textarea
+              className="synergi-textarea synergi-workspace-opportunity-notes"
+              placeholder={t('workspaceAssetPackContextPlaceholder')}
+              value={assetPackForm.requestNotes}
+              onChange={(event) => setAssetPackForm((current) => ({ ...current, requestNotes: event.target.value }))}
+              disabled={submittingAssetPack}
+            />
+            <button type="submit" className="synergi-button synergi-workspace-action" disabled={submittingAssetPack}>
+              {submittingAssetPack ? t('workspaceAssetPackRequesting') : t('workspaceAssetPackSubmit')}
+            </button>
+          </form>
+
+          {assetPackRequests.length ? assetPackRequests.map((request) => (
+            <article key={request.id} className="synergi-review-content-card">
+              <span>{t(`workspaceAssetPackType_${request.pack_type}`)}</span>
+              <p>{request.title}</p>
+              <p className="synergi-workspace-muted">{request.request_notes || t('workspaceAssetPacksEmpty')}</p>
+              <div className="synergi-review-meta-grid synergi-workspace-meta-grid">
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPackStatus')}</span>
+                  <strong>{t(`workspaceAssetPackStatus_${request.status}`)}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPackRegion')}</span>
+                  <strong>{request.target_region || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPackNeededBy')}</span>
+                  <strong>{request.needed_by_label || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPackRequestedAssetsLabel')}</span>
+                  <strong>{request.requested_assets.length ? request.requested_assets.join(', ') : '—'}</strong>
+                </div>
+              </div>
+            </article>
+          )) : (
+            <article className="synergi-review-empty">{t('workspaceAssetPacksEmpty')}</article>
+          )}
+        </section>
       </div>
     )
   }
@@ -550,12 +762,136 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
     )
   }
 
+  function renderReferrals() {
+    return (
+      <div className="synergi-workspace-referrals-layout">
+        <section className="synergi-workspace-stack">
+          <div className="synergi-review-section-head">
+            <h3>{t('workspaceReferralsTitle')}</h3>
+            <p>{t('workspaceReferralsSubtitle')}</p>
+          </div>
+
+          <form className="synergi-form synergi-workspace-form-card" onSubmit={handleReferralSubmit}>
+            <input
+              className="synergi-input"
+              placeholder={t('workspaceReferralName')}
+              value={referralForm.referralName}
+              onChange={(event) => setReferralForm((current) => ({ ...current, referralName: event.target.value }))}
+              disabled={submittingReferral}
+            />
+            <div className="synergi-two-cols">
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceReferralCompany')}
+                value={referralForm.referralCompany}
+                onChange={(event) => setReferralForm((current) => ({ ...current, referralCompany: event.target.value }))}
+                disabled={submittingReferral}
+              />
+              <select
+                className="synergi-select"
+                value={referralForm.referralKind}
+                onChange={(event) =>
+                  setReferralForm((current) => ({
+                    ...current,
+                    referralKind: event.target.value as PartnerReferralRecord['referral_kind'],
+                  }))
+                }
+                disabled={submittingReferral}
+              >
+                {(['buyer', 'seller', 'investor', 'introducer', 'partner'] as const).map((kind) => (
+                  <option key={kind} value={kind}>
+                    {t(`workspaceReferralKind_${kind}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="synergi-two-cols">
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceReferralEmail')}
+                value={referralForm.referralEmail}
+                onChange={(event) => setReferralForm((current) => ({ ...current, referralEmail: event.target.value }))}
+                disabled={submittingReferral}
+              />
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceReferralPhone')}
+                value={referralForm.referralPhone}
+                onChange={(event) => setReferralForm((current) => ({ ...current, referralPhone: event.target.value }))}
+                disabled={submittingReferral}
+              />
+            </div>
+            <div className="synergi-two-cols">
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceReferralRegion')}
+                value={referralForm.regionLabel}
+                onChange={(event) => setReferralForm((current) => ({ ...current, regionLabel: event.target.value }))}
+                disabled={submittingReferral}
+              />
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceReferralBudget')}
+                value={referralForm.budgetLabel}
+                onChange={(event) => setReferralForm((current) => ({ ...current, budgetLabel: event.target.value }))}
+                disabled={submittingReferral}
+              />
+            </div>
+            <textarea
+              className="synergi-textarea synergi-workspace-opportunity-notes"
+              placeholder={t('workspaceReferralNotes')}
+              value={referralForm.referralNotes}
+              onChange={(event) => setReferralForm((current) => ({ ...current, referralNotes: event.target.value }))}
+              disabled={submittingReferral}
+            />
+            <button type="submit" className="synergi-button synergi-workspace-action" disabled={submittingReferral}>
+              {submittingReferral ? t('workspaceReferralSubmitting') : t('workspaceReferralSubmit')}
+            </button>
+          </form>
+
+          {referrals.length ? referrals.map((referral) => (
+            <article key={referral.id} className="synergi-review-content-card synergi-workspace-referral-card">
+              <div className="synergi-workspace-opportunity-card-head">
+                <span>{t(`workspaceReferralKind_${referral.referral_kind}`)}</span>
+                <strong className={`synergi-workspace-opportunity-response is-${referral.status}`}>
+                  {t(`workspaceReferralStatus_${referral.status}`)}
+                </strong>
+              </div>
+              <p>{referral.referral_name}</p>
+              <p className="synergi-workspace-muted">{referral.referral_notes || t('workspaceReferralsEmpty')}</p>
+              <div className="synergi-review-meta-grid synergi-workspace-meta-grid">
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceReferralCompany')}</span>
+                  <strong>{referral.referral_company || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceReferralRegion')}</span>
+                  <strong>{referral.region_label || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceReferralBudget')}</span>
+                  <strong>{referral.budget_label || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceOpportunityCreated')}</span>
+                  <strong>{formatOpportunityDate(referral.created_at, language)}</strong>
+                </div>
+              </div>
+            </article>
+          )) : (
+            <article className="synergi-review-empty">{t('workspaceReferralsEmpty')}</article>
+          )}
+        </section>
+      </div>
+    )
+  }
+
   function renderActivity() {
     return (
       <div className="synergi-workspace-stack">
         {props.activity.length ? props.activity.map((event) => (
           <article key={event.id} className="synergi-review-content-card">
-            <span>{event.event_type}</span>
+            <span>{normalizeLabel(event.event_type)}</span>
             <p>{event.title}</p>
             <p className="synergi-workspace-muted">{event.description || t('workspaceEmptyActivity')}</p>
           </article>
@@ -574,6 +910,8 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
         return renderAssets()
       case 'opportunities':
         return renderOpportunities()
+      case 'referrals':
+        return renderReferrals()
       case 'activity':
         return renderActivity()
       default:
