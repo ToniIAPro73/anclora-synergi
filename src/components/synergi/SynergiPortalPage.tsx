@@ -1,13 +1,33 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import Script from 'next/script'
 import { ArrowRight, KeyRound, ShieldCheck, Sparkles, UserRoundPlus } from 'lucide-react'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 
+declare global {
+  interface Window {
+    grecaptcha?: {
+      render: (
+        container: HTMLElement,
+        parameters: {
+          sitekey: string
+          callback: (token: string) => void
+          'expired-callback'?: () => void
+          'error-callback'?: () => void
+        }
+      ) => number
+      reset: (widgetId?: number) => void
+    }
+    onSynergiRecaptchaVerified?: (token: string) => void
+  }
+}
+
 export function SynergiPortalPage() {
   const { language, setLanguage, t } = useI18n()
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY?.trim() || ''
   const [form, setForm] = useState({
     name: '',
     brand: '',
@@ -17,20 +37,70 @@ export function SynergiPortalPage() {
   })
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaScriptReady, setCaptchaScriptReady] = useState(false)
+  const captchaContainerRef = useRef<HTMLDivElement | null>(null)
+  const captchaWidgetIdRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    window.onSynergiRecaptchaVerified = (token: string) => {
+      setCaptchaToken(token)
+      setNotice(null)
+    }
+
+    return () => {
+      delete window.onSynergiRecaptchaVerified
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!recaptchaSiteKey || !captchaScriptReady) return
+    if (!window.grecaptcha || !captchaContainerRef.current || captchaWidgetIdRef.current !== null) return
+
+    captchaWidgetIdRef.current = window.grecaptcha.render(captchaContainerRef.current, {
+      sitekey: recaptchaSiteKey,
+      callback: (token: string) => {
+        window.onSynergiRecaptchaVerified?.(token)
+      },
+      'expired-callback': () => {
+        setCaptchaToken(null)
+      },
+      'error-callback': () => {
+        setCaptchaToken(null)
+        setNotice(t('captchaError'))
+      },
+    })
+  }, [captchaScriptReady, recaptchaSiteKey, t])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (recaptchaSiteKey && !captchaToken) {
+      setNotice(t('captchaRequired'))
+      return
+    }
+
     setSubmitting(true)
     setNotice(null)
 
     window.setTimeout(() => {
       setSubmitting(false)
+      setCaptchaToken(null)
+      if (window.grecaptcha && captchaWidgetIdRef.current !== null) {
+        window.grecaptcha.reset(captchaWidgetIdRef.current)
+      }
       setNotice(t('admissionPending'))
     }, 480)
   }
 
   return (
     <main className="synergi-page">
+      {recaptchaSiteKey ? (
+        <Script
+          src="https://www.google.com/recaptcha/api.js?render=explicit"
+          strategy="afterInteractive"
+          onLoad={() => setCaptchaScriptReady(true)}
+        />
+      ) : null}
       <div className="synergi-noise" />
       <section className="synergi-shell">
         <header className="synergi-topbar">
@@ -151,9 +221,27 @@ export function SynergiPortalPage() {
                 disabled={submitting}
               />
 
+              <div className="synergi-captcha-block">
+                <p className="synergi-captcha-label">{t('captchaLabel')}</p>
+                {recaptchaSiteKey ? (
+                  <>
+                    <div className="synergi-captcha-shell">
+                      <div ref={captchaContainerRef} />
+                    </div>
+                    {!captchaToken ? <p className="synergi-captcha-help">{t('captchaHelp')}</p> : null}
+                  </>
+                ) : (
+                  <p className="synergi-captcha-help">{t('captchaMissing')}</p>
+                )}
+              </div>
+
               {notice ? <p className="synergi-notice">{notice}</p> : null}
 
-              <button className="synergi-button" type="submit" disabled={submitting}>
+              <button
+                className="synergi-button"
+                type="submit"
+                disabled={submitting || !recaptchaSiteKey || !captchaToken}
+              >
                 {submitting ? t('admissionSubmitting') : t('admissionCta')}
               </button>
             </form>

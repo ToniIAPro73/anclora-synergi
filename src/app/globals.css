@@ -388,7 +388,11 @@ input {
 }
 
 .synergi-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 58px;
+  padding: 0 28px;
   border: 1px solid rgba(212, 175, 55, 0.55);
   border-radius: 999px;
   background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 50%, #fbf5b7 55%, #aa771c 100%);
@@ -477,12 +481,43 @@ input {
   resize: vertical;
 }
 
+.synergi-captcha-block {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(212, 175, 55, 0.14);
+  background: rgba(10, 48, 58, 0.22);
+}
+
+.synergi-captcha-label {
+  margin: 0;
+  color: var(--synergi-champagne);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.synergi-captcha-shell {
+  overflow-x: auto;
+}
+
+.synergi-captcha-help {
+  margin: 0;
+  color: var(--synergi-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
 .synergi-login-cta-box {
   margin-top: 18px;
 }
 
 .synergi-button-link {
   width: 100%;
+  min-height: 64px;
+  padding: 0 34px;
 }
 
 .synergi-support-card {
