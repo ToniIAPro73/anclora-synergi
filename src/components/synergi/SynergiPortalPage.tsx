@@ -10,6 +10,7 @@ import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 declare global {
   interface Window {
     grecaptcha?: {
+      ready?: (callback: () => void) => void
       render: (
         container: HTMLElement,
         parameters: {
@@ -57,19 +58,34 @@ export function SynergiPortalPage() {
     if (!recaptchaSiteKey || !captchaScriptReady) return
     if (!window.grecaptcha || !captchaContainerRef.current || captchaWidgetIdRef.current !== null) return
 
-    captchaWidgetIdRef.current = window.grecaptcha.render(captchaContainerRef.current, {
-      sitekey: recaptchaSiteKey,
-      callback: (token: string) => {
-        window.onSynergiRecaptchaVerified?.(token)
-      },
-      'expired-callback': () => {
-        setCaptchaToken(null)
-      },
-      'error-callback': () => {
-        setCaptchaToken(null)
-        setNotice(t('captchaError'))
-      },
-    })
+    const renderWidget = () => {
+      if (!window.grecaptcha || !captchaContainerRef.current || captchaWidgetIdRef.current !== null) return
+      if (typeof window.grecaptcha.render !== 'function') {
+        setNotice(t('captchaUnavailable'))
+        return
+      }
+
+      captchaWidgetIdRef.current = window.grecaptcha.render(captchaContainerRef.current, {
+        sitekey: recaptchaSiteKey,
+        callback: (token: string) => {
+          window.onSynergiRecaptchaVerified?.(token)
+        },
+        'expired-callback': () => {
+          setCaptchaToken(null)
+        },
+        'error-callback': () => {
+          setCaptchaToken(null)
+          setNotice(t('captchaError'))
+        },
+      })
+    }
+
+    if (typeof window.grecaptcha.ready === 'function') {
+      window.grecaptcha.ready(renderWidget)
+      return
+    }
+
+    renderWidget()
   }, [captchaScriptReady, recaptchaSiteKey, t])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -98,7 +114,7 @@ export function SynergiPortalPage() {
         <Script
           src="https://www.google.com/recaptcha/api.js?render=explicit"
           strategy="afterInteractive"
-          onLoad={() => setCaptchaScriptReady(true)}
+          onReady={() => setCaptchaScriptReady(true)}
         />
       ) : null}
       <div className="synergi-noise" />

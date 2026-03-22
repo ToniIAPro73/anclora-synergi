@@ -391,6 +391,8 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
   min-height: 58px;
   padding: 0 28px;
   border: 1px solid rgba(212, 175, 55, 0.55);
@@ -403,6 +405,23 @@ input {
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: 0 18px 38px rgba(212, 175, 55, 0.2);
+}
+
+.synergi-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -110%;
+  width: 48%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-25deg);
+}
+
+.synergi-button:hover::before {
+  left: 160%;
+  transition: all 0.8s ease-in-out;
 }
 
 .synergi-button:disabled {
