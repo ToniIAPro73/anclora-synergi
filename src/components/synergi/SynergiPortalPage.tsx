@@ -67,12 +67,7 @@ export function SynergiPortalPage() {
       if (!api || !container || captchaWidgetIdRef.current !== null) return
 
       const isMobileViewport = window.matchMedia('(max-width: 420px)').matches
-      const mount = () => {
-        if (typeof api.render !== 'function') {
-          setNotice(t('captchaUnavailable'))
-          return
-        }
-
+      api.ready?.(() => {
         captchaWidgetIdRef.current = api.render(container, {
           sitekey: recaptchaSiteKey,
           theme: 'dark',
@@ -89,14 +84,7 @@ export function SynergiPortalPage() {
           },
         })
         setCaptchaReady(true)
-      }
-
-      if (typeof api.ready === 'function') {
-        api.ready(mount)
-        return
-      }
-
-      mount()
+      })
     }
 
     if (window.grecaptcha) {
