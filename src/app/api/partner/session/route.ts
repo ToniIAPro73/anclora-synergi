@@ -25,16 +25,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Partner account not found.' }, { status: 404 })
   }
 
-  if (account.account_status === 'invited') {
-    if (account.invite_code_expires_at && Date.now() > new Date(account.invite_code_expires_at).getTime()) {
-      return NextResponse.json({ error: 'Invitation code expired.' }, { status: 401 })
-    }
+  const inviteCodeStillValid =
+    !!account.invite_code_hash &&
+    (!account.invite_code_expires_at || Date.now() <= new Date(account.invite_code_expires_at).getTime()) &&
+    verifySecret(secret, account.invite_code_hash)
 
-    const inviteValid = verifySecret(secret, account.invite_code_hash)
-    if (!inviteValid) {
-      return NextResponse.json({ error: 'Invalid invitation code.' }, { status: 401 })
-    }
-
+  if (inviteCodeStillValid) {
     await createPartnerSessionCookie(account.id, 'invited', remember)
     return NextResponse.json({
       ok: true,
@@ -45,7 +41,11 @@ export async function POST(request: NextRequest) {
 
   const passwordValid = verifySecret(secret, account.password_hash)
   if (!passwordValid) {
-    return NextResponse.json({ error: 'Invalid password.' }, { status: 401 })
+    if (account.invite_code_hash && account.invite_code_expires_at && Date.now() > new Date(account.invite_code_expires_at).getTime()) {
+      return NextResponse.json({ error: 'Invitation code expired.' }, { status: 401 })
+    }
+
+    return NextResponse.json({ error: 'Invalid password or access code.' }, { status: 401 })
   }
 
   await markPartnerLogin(account.id)

@@ -16,6 +16,10 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [reissueEmail, setReissueEmail] = useState(prefillEmail)
+  const [reissueSubmitting, setReissueSubmitting] = useState(false)
+  const [reissueNotice, setReissueNotice] = useState<string | null>(null)
+  const [reissueError, setReissueError] = useState<string | null>(null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -54,6 +58,34 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t('loginError'))
       setSubmitting(false)
+    }
+  }
+
+  async function handleReissue(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setReissueSubmitting(true)
+    setReissueNotice(null)
+    setReissueError(null)
+
+    try {
+      const response = await fetch('/api/partner/reissue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: reissueEmail }),
+      })
+
+      const body = (await response.json().catch(() => null)) as { error?: string; message?: string } | null
+      if (!response.ok) {
+        throw new Error(body?.error || t('reissueError'))
+      }
+
+      setReissueNotice(body?.message || t('reissueSuccess'))
+    } catch (submitError) {
+      setReissueError(submitError instanceof Error ? submitError.message : t('reissueError'))
+    } finally {
+      setReissueSubmitting(false)
     }
   }
 
@@ -188,10 +220,27 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
                 <p>{t('supportTitle')}</p>
                 <span>{t('supportCopy')}</span>
               </a>
-              <a href="mailto:synergi@anclora.com?subject=Reset%20Synergi%20Credentials" className="synergi-support-card">
+              <div className="synergi-support-card synergi-support-card-form">
                 <p>{t('resetTitle')}</p>
                 <span>{t('resetCopy')}</span>
-              </a>
+                <form className="synergi-form synergi-inline-form" onSubmit={handleReissue}>
+                  <input
+                    className="synergi-input"
+                    type="email"
+                    placeholder={t('reissueEmail')}
+                    value={reissueEmail}
+                    onChange={(event) => setReissueEmail(event.target.value)}
+                    autoComplete="email"
+                    required
+                    disabled={reissueSubmitting}
+                  />
+                  {reissueError ? <p className="synergi-notice">{reissueError}</p> : null}
+                  {reissueNotice ? <p className="synergi-notice synergi-notice-success">{reissueNotice}</p> : null}
+                  <button className="synergi-button synergi-button-link" type="submit" disabled={reissueSubmitting}>
+                    {reissueSubmitting ? t('reissueSubmitting') : t('reissueCta')}
+                  </button>
+                </form>
+              </div>
             </div>
           </section>
         </div>

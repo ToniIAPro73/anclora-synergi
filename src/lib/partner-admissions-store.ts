@@ -477,6 +477,47 @@ export async function activatePartnerAccount(input: {
   `
 }
 
+export async function issuePartnerInvite(input: {
+  partnerAccountId: string
+}) {
+  globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
+  await globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady
+
+  const inviteCode = generateInviteCode()
+  const inviteCodeHash = hashSecret(inviteCode)
+
+  const rows = await sql`
+    UPDATE partner_accounts
+    SET
+      invite_code_hash = ${inviteCodeHash},
+      invite_code_expires_at = NOW() + INTERVAL '7 days',
+      updated_at = NOW()
+    WHERE id = ${input.partnerAccountId}
+    RETURNING
+      id,
+      admission_id,
+      email,
+      full_name,
+      company_name,
+      account_status,
+      invite_code_hash,
+      invite_code_expires_at,
+      activated_at,
+      last_login_at,
+      created_at,
+      updated_at;
+  `
+
+  const account = (rows[0] as PartnerAccountRecord | undefined) ?? null
+  if (!account) return null
+
+  return {
+    account,
+    inviteCode,
+    launchUrl: `/login?email=${encodeURIComponent(account.email)}`,
+  }
+}
+
 export async function acceptPartnerAdmission(input: {
   admissionId: string
   reviewNotes?: string

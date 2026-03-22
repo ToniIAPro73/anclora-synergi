@@ -5,6 +5,7 @@ import {
   updatePartnerAdmissionStatus,
   type PartnerAdmissionStatus,
 } from '@/lib/partner-admissions-store'
+import { sendPartnerAcceptedEmail, sendPartnerRejectedEmail } from '@/lib/synergi-email'
 
 const REVIEWABLE_STATUSES = new Set<Exclude<PartnerAdmissionStatus, 'submitted'>>([
   'under_review',
@@ -49,6 +50,14 @@ export async function PATCH(
         return NextResponse.json({ error: 'Partner admission not found.' }, { status: 404 })
       }
 
+      await sendPartnerAcceptedEmail({
+        partnerName: accepted.account.full_name,
+        email: accepted.account.email,
+        companyName: accepted.account.company_name,
+        inviteCode: accepted.inviteCode,
+        launchUrl: accepted.launchUrl,
+      })
+
       return NextResponse.json({
         ...accepted.admission,
         invite_code: accepted.inviteCode,
@@ -69,10 +78,17 @@ export async function PATCH(
       return NextResponse.json({ error: 'Partner admission not found.' }, { status: 404 })
     }
 
+    if (payload.status === 'rejected') {
+      await sendPartnerRejectedEmail({
+        partnerName: updated.full_name,
+        email: updated.email,
+      })
+    }
+
     return NextResponse.json(updated)
   } catch {
     return NextResponse.json(
-      { error: 'Unable to update partner admission in Neon.' },
+      { error: 'Unable to complete the partner admission decision workflow.' },
       { status: 502 }
     )
   }

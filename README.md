@@ -9,9 +9,9 @@ Current scope:
 - Visual language derived from Private Estates, with a distinct Synergi identity
 - Server-side partner admission route with reCAPTCHA verification and Neon persistence
 - Internal review panel with decision workflow, invite-code generation and admin protection
+- Transactional email layer for acceptance, rejection and credential reissue
 
 Next steps:
-- connect transactional emails for acceptance, rejection and credential reissue
 - expand the private workspace with partner-facing assets and referrals
 - harden the internal review area with richer audit and role controls
 - point Private Estates Partner Portal to the public Synergi root URL
@@ -19,6 +19,7 @@ Next steps:
 Required environment variables:
 - `NEXT_PUBLIC_PRIVATE_ESTATES_PARTNER_ENTRY_URL`
 - `NEXT_PUBLIC_PRIVATE_ESTATES_URL`
+- `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`
 - `RECAPTCHA_SECRET_KEY`
 - `RECAPTCHA_VERIFY_URL`
@@ -27,3 +28,8 @@ Required environment variables:
 - `SYNERGI_ADMIN_PASSWORD`
 - `SYNERGI_ADMIN_SESSION_SECRET`
 - `SYNERGI_PARTNER_SESSION_SECRET`
+- `SYNERGI_EMAIL_PROVIDER`
+- `RESEND_API_KEY`
+- `SYNERGI_EMAIL_FROM`
+- `SYNERGI_EMAIL_REPLY_TO`
+- `SYNERGI_SUPPORT_EMAIL`

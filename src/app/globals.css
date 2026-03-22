@@ -618,6 +618,11 @@ input {
   transition: border-color 180ms ease, transform 180ms ease;
 }
 
+.synergi-support-card-form {
+  display: grid;
+  gap: 14px;
+}
+
 .synergi-support-card:hover {
   transform: translateY(-2px);
   border-color: rgba(212, 175, 55, 0.24);
@@ -632,6 +637,10 @@ input {
   display: block;
   margin-top: 12px;
   font-size: 0.92rem;
+}
+
+.synergi-inline-form {
+  margin-top: 4px;
 }
 
 .synergi-review-toolbar {
