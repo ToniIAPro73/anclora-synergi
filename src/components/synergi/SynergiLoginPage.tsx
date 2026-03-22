@@ -10,21 +10,51 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
   const { language, setLanguage, t } = useI18n()
   const [form, setForm] = useState({
     email: prefillEmail,
-    code: '',
+    secret: '',
     remember: true,
   })
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitting(true)
+    setError(null)
     setNotice(null)
 
-    window.setTimeout(() => {
+    try {
+      const response = await fetch('/api/partner/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: form.email,
+          secret: form.secret,
+          remember: form.remember,
+        }),
+      })
+
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string; status?: string; next_url?: string }
+        | null
+
+      if (!response.ok) {
+        throw new Error(body?.error || t('loginError'))
+      }
+
+      if (body?.status === 'activation_required') {
+        setNotice(t('loginActivationRequired'))
+      } else {
+        setNotice(t('loginSuccess'))
+      }
+
+      window.location.assign(body?.next_url || '/workspace')
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : t('loginError'))
       setSubmitting(false)
-      setNotice(t('pending'))
-    }, 480)
+    }
   }
 
   return (
@@ -128,8 +158,8 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
                 className="synergi-input"
                 type="password"
                 placeholder={t('fieldCode')}
-                value={form.code}
-                onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
+                value={form.secret}
+                onChange={(event) => setForm((prev) => ({ ...prev, secret: event.target.value }))}
                 autoComplete="current-password"
                 required
                 disabled={submitting}
@@ -145,7 +175,8 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
                 <span>{t('remember')}</span>
               </label>
 
-              {notice ? <p className="synergi-notice">{notice}</p> : null}
+              {error ? <p className="synergi-notice">{error}</p> : null}
+              {notice ? <p className="synergi-notice synergi-notice-success">{notice}</p> : null}
 
               <button className="synergi-button" type="submit" disabled={submitting}>
                 {submitting ? t('submitting') : t('cta')}
@@ -168,4 +199,3 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
     </main>
   )
 }
-

@@ -29,8 +29,29 @@ type PartnerAdmissionRecord = {
   status: PartnerAdmissionStatus
   review_notes: string | null
   reviewed_at: string | null
+  reviewed_by?: string | null
   created_at: string
   updated_at: string
+  partner_account_id?: string | null
+  partner_workspace_id?: string | null
+}
+
+type ReviewUpdateResponse = PartnerAdmissionRecord & {
+  invite_code?: string
+  launch_url?: string
+  partner_account?: {
+    id: string
+    email: string
+    full_name: string
+    company_name: string | null
+    account_status: 'invited' | 'active' | 'paused'
+  }
+  partner_workspace?: {
+    id: string
+    workspace_status: 'invited' | 'active' | 'paused'
+    display_name: string
+    welcome_note: string | null
+  }
 }
 
 type AdmissionsResponse = {
@@ -72,6 +93,11 @@ export function PartnerAdmissionsReviewPage() {
   const [savingStatus, setSavingStatus] = useState<PartnerAdmissionStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [decisionPayload, setDecisionPayload] = useState<{
+    admissionId: string
+    inviteCode?: string
+    launchUrl?: string
+  } | null>(null)
 
   async function handleLogout() {
     await fetch('/api/admin/session', { method: 'DELETE' })
@@ -119,7 +145,10 @@ export function PartnerAdmissionsReviewPage() {
   useEffect(() => {
     setReviewNotes(selectedAdmission?.review_notes || '')
     setNotice(null)
-  }, [selectedAdmission])
+    if (decisionPayload && selectedAdmission?.id !== decisionPayload.admissionId) {
+      setDecisionPayload(null)
+    }
+  }, [decisionPayload, selectedAdmission])
 
   const summary = useMemo(() => {
     return items.reduce(
@@ -157,14 +186,24 @@ export function PartnerAdmissionsReviewPage() {
         }),
       })
 
-      const body = (await response.json()) as PartnerAdmissionRecord | { error?: string }
+      const body = (await response.json()) as ReviewUpdateResponse | { error?: string }
 
       if (!response.ok || !('id' in body)) {
         throw new Error(('error' in body && body.error) || t('reviewUpdateError'))
       }
 
       setItems((current) => current.map((item) => (item.id === body.id ? body : item)))
-      setNotice(t('reviewSavedNotice'))
+      if (status === 'accepted') {
+        setDecisionPayload({
+          admissionId: body.id,
+          inviteCode: body.invite_code,
+          launchUrl: body.launch_url,
+        })
+        setNotice(t('reviewAcceptedNotice'))
+      } else {
+        setDecisionPayload(null)
+        setNotice(t('reviewSavedNotice'))
+      }
     } catch (reviewError) {
       setError(reviewError instanceof Error ? reviewError.message : t('reviewUpdateError'))
     } finally {
@@ -356,6 +395,14 @@ export function PartnerAdmissionsReviewPage() {
                     <span>{t('reviewFieldCaptcha')}</span>
                     <strong>{selectedAdmission.captcha_verified ? t('reviewCaptchaVerified') : t('reviewCaptchaMissing')}</strong>
                   </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldReviewer')}</span>
+                    <strong>{selectedAdmission.reviewed_by || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldReviewedAt')}</span>
+                    <strong>{selectedAdmission.reviewed_at ? formatDate(selectedAdmission.reviewed_at, language) : t('reviewValueMissing')}</strong>
+                  </div>
                 </div>
 
                 <div className="synergi-review-content-card">
@@ -368,6 +415,22 @@ export function PartnerAdmissionsReviewPage() {
                     disabled={savingStatus !== null}
                   />
                 </div>
+
+                {decisionPayload?.admissionId === selectedAdmission.id ? (
+                  <div className="synergi-review-content-card">
+                    <span>{t('reviewDecisionOutputTitle')}</span>
+                    <div className="synergi-review-decision-output">
+                      <div>
+                        <strong>{t('reviewDecisionInviteCode')}</strong>
+                        <p>{decisionPayload.inviteCode || t('reviewValueMissing')}</p>
+                      </div>
+                      <div>
+                        <strong>{t('reviewDecisionLaunchUrl')}</strong>
+                        <p>{decisionPayload.launchUrl || t('reviewValueMissing')}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="synergi-review-actions">
                   {REVIEW_ACTIONS.map((status) => (

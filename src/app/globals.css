@@ -429,6 +429,12 @@ input {
   line-height: 1.7;
 }
 
+.synergi-notice-success {
+  border-color: rgba(103, 191, 129, 0.24);
+  background: rgba(25, 77, 45, 0.24);
+  color: #d8f7c8;
+}
+
 .synergi-button {
   display: inline-flex;
   align-items: center;
@@ -804,6 +810,22 @@ input {
 .synergi-review-content-card p {
   color: var(--synergi-cream);
   line-height: 1.8;
+}
+
+.synergi-review-decision-output {
+  display: grid;
+  gap: 12px;
+}
+
+.synergi-review-decision-output strong {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--synergi-cream);
+  font-size: 0.88rem;
+}
+
+.synergi-review-decision-output p {
+  word-break: break-word;
 }
 
 .synergi-review-notes {
