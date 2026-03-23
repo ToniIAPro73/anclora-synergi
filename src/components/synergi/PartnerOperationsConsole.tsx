@@ -89,6 +89,24 @@ export function PartnerOperationsConsole() {
     deliveryNotes: '',
     fulfillmentOwner: '',
   })
+  const [assets, setAssets] = useState<PartnerAssetRecord[]>([])
+  const [assetFilter, setAssetFilter] = useState<(typeof ASSET_STATUS_FILTERS)[number]>('all')
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
+  const [assetsLoading, setAssetsLoading] = useState(true)
+  const [assetsRefreshing, setAssetsRefreshing] = useState(false)
+  const [assetPublishBusyId, setAssetPublishBusyId] = useState<string | null>(null)
+  const [assetForm, setAssetForm] = useState({
+    title: '',
+    description: '',
+    assetKind: 'document' as PartnerAssetRecord['asset_kind'],
+    accessLevel: 'shared' as PartnerAssetRecord['access_level'],
+    lifecycleStatus: 'active' as PartnerAssetRecord['lifecycle_status'],
+    versionLabel: '',
+    assetUrl: '',
+    assetBody: '',
+    contentFormat: 'markdown' as PartnerAssetRecord['content_format'],
+    retirementReason: '',
+  })
 
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -139,6 +157,30 @@ export function PartnerOperationsConsole() {
         .some((value) => value.toLowerCase().includes(needle))
     )
   }, [assetPackRequests, searchQuery])
+
+  const visibleAssets = useMemo(() => {
+    const needle = searchQuery.trim().toLowerCase()
+    if (!needle) return assets
+
+    return assets.filter((asset) =>
+      [
+        asset.title,
+        asset.description,
+        asset.version_label,
+        asset.asset_kind,
+        asset.access_level,
+        asset.lifecycle_status,
+        asset.source_type,
+        asset.partner_account_id,
+        asset.published_by,
+        asset.asset_url,
+        asset.asset_body,
+        asset.retirement_reason,
+      ]
+        .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+        .some((value) => value.toLowerCase().includes(needle))
+    )
+  }, [assets, searchQuery])
 
   async function loadReferrals(nextFilter = referralFilter, showRefreshState = false) {
     if (showRefreshState) setReferralsRefreshing(true)
@@ -196,6 +238,34 @@ export function PartnerOperationsConsole() {
     }
   }
 
+  async function loadAssets(nextFilter = assetFilter, showRefreshState = false) {
+    if (showRefreshState) setAssetsRefreshing(true)
+    else setAssetsLoading(true)
+    setError(null)
+
+    try {
+      const params = new URLSearchParams()
+      if (nextFilter !== 'all') params.set('status', nextFilter)
+      const response = await fetch(`/api/admin/partner-assets?${params.toString()}`, { cache: 'no-store' })
+      const body = (await response.json().catch(() => null)) as AssetsResponse | { error?: string } | null
+
+      if (!response.ok || !body || !('items' in body)) {
+        throw new Error((body && 'error' in body && body.error) || t('opsLoadError'))
+      }
+
+      setAssets(body.items)
+      setSelectedAssetId((current) => {
+        if (current && body.items.some((item) => item.id === current)) return current
+        return body.items[0]?.id || null
+      })
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : t('opsLoadError'))
+    } finally {
+      setAssetsLoading(false)
+      setAssetsRefreshing(false)
+    }
+  }
+
   useEffect(() => {
     void loadReferrals(referralFilter)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,6 +276,11 @@ export function PartnerOperationsConsole() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assetPackFilter])
 
+  useEffect(() => {
+    void loadAssets(assetFilter)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assetFilter])
+
   const selectedReferral = useMemo(
     () => visibleReferrals.find((item) => item.id === selectedReferralId) ?? visibleReferrals[0] ?? null,
     [visibleReferrals, selectedReferralId]
@@ -214,6 +289,11 @@ export function PartnerOperationsConsole() {
   const selectedAssetPack = useMemo(
     () => visibleAssetPackRequests.find((item) => item.id === selectedAssetPackId) ?? visibleAssetPackRequests[0] ?? null,
     [visibleAssetPackRequests, selectedAssetPackId]
+  )
+
+  const selectedAsset = useMemo(
+    () => visibleAssets.find((item) => item.id === selectedAssetId) ?? visibleAssets[0] ?? null,
+    [visibleAssets, selectedAssetId]
   )
 
   useEffect(() => {
@@ -243,6 +323,22 @@ export function PartnerOperationsConsole() {
     setNotice(null)
   }, [selectedAssetPack])
 
+  useEffect(() => {
+    setAssetForm({
+      title: selectedAsset?.title || '',
+      description: selectedAsset?.description || '',
+      assetKind: selectedAsset?.asset_kind || 'document',
+      accessLevel: selectedAsset?.access_level || 'shared',
+      lifecycleStatus: selectedAsset?.lifecycle_status || 'active',
+      versionLabel: selectedAsset?.version_label || '',
+      assetUrl: selectedAsset?.asset_url || '',
+      assetBody: selectedAsset?.asset_body || '',
+      contentFormat: selectedAsset?.content_format || 'markdown',
+      retirementReason: selectedAsset?.retirement_reason || '',
+    })
+    setNotice(null)
+  }, [selectedAsset])
+
   const referralSummary = useMemo(() => {
     return visibleReferrals.reduce(
       (acc, item) => {
@@ -266,6 +362,18 @@ export function PartnerOperationsConsole() {
       { total: 0, open: 0, resolved: 0 }
     )
   }, [visibleAssetPackRequests])
+
+  const assetSummary = useMemo(() => {
+    return visibleAssets.reduce(
+      (acc, item) => {
+        acc.total += 1
+        if (item.lifecycle_status === 'active') acc.open += 1
+        else acc.resolved += 1
+        return acc
+      },
+      { total: 0, open: 0, resolved: 0 }
+    )
+  }, [visibleAssets])
 
   async function handleReferralUpdate(nextStatus: PartnerReferralRecord['status']) {
     if (!selectedReferral) return
