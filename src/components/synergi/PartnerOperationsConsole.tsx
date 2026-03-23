@@ -84,6 +84,10 @@ export function PartnerOperationsConsole() {
     assetUrl: '',
     assetBody: '',
     contentFormat: 'markdown' as PartnerAssetRecord['content_format'],
+    deliveryMethod: 'workspace-asset',
+    deliveryReference: '',
+    deliveryNotes: '',
+    fulfillmentOwner: '',
   })
 
   const [notice, setNotice] = useState<string | null>(null)
@@ -231,6 +235,10 @@ export function PartnerOperationsConsole() {
       assetUrl: '',
       assetBody: '',
       contentFormat: 'markdown',
+      deliveryMethod: selectedAssetPack?.delivery_method || 'workspace-asset',
+      deliveryReference: selectedAssetPack?.delivery_reference || '',
+      deliveryNotes: selectedAssetPack?.delivery_notes || '',
+      fulfillmentOwner: selectedAssetPack?.fulfillment_owner || '',
     })
     setNotice(null)
   }, [selectedAssetPack])
@@ -691,7 +699,7 @@ export function PartnerOperationsConsole() {
             )}
           </section>
         </div>
-      ) : (
+      ) : assetPacksVisible ? (
         <div className="synergi-review-grid synergi-ops-grid">
           <section className="synergi-panel synergi-review-list-panel synergi-ops-list-panel">
             <div className="synergi-review-section-head">
@@ -924,6 +932,220 @@ export function PartnerOperationsConsole() {
                       {assetPackBusyId === selectedAssetPack.id ? t('opsSaving') : t(`workspaceAssetPackStatus_${status}`)}
                     </button>
                   ))}
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      ) : (
+        <div className="synergi-review-grid synergi-ops-grid">
+          <section className="synergi-panel synergi-review-list-panel synergi-ops-list-panel">
+            <div className="synergi-review-section-head">
+              <h3>{t('opsAssetsTitle')}</h3>
+              <p>{t('opsAssetsSubtitle')}</p>
+            </div>
+
+            <div className="synergi-review-filters synergi-ops-status-filters">
+              {ASSET_STATUS_FILTERS.map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  className={`synergi-review-filter ${assetFilter === status ? 'is-active' : ''}`}
+                  onClick={() => setAssetFilter(status)}
+                >
+                  {status === 'all' ? t('reviewStatus_all') : t(`workspaceAssetLifecycle_${status}`)}
+                </button>
+              ))}
+            </div>
+
+            {assetsLoading ? (
+              <div className="synergi-review-empty">{t('opsLoading')}</div>
+            ) : assets.length === 0 ? (
+              <div className="synergi-review-empty">{t('opsEmpty')}</div>
+            ) : (
+              <div className="synergi-review-list">
+                {assets.map((asset) => (
+                  <button
+                    key={asset.id}
+                    type="button"
+                    className={`synergi-review-item ${selectedAsset?.id === asset.id ? 'is-active' : ''}`}
+                    onClick={() => setSelectedAssetId(asset.id)}
+                  >
+                    <div className="synergi-review-item-top">
+                      <strong>{asset.title}</strong>
+                      <span className={`synergi-review-badge is-${asset.lifecycle_status}`}>
+                        {t(`workspaceAssetLifecycle_${asset.lifecycle_status === 'archived' ? 'retired' : asset.lifecycle_status}`)}
+                      </span>
+                    </div>
+                    <p>
+                      {asset.version_label || `v${asset.version_number}`}
+                      {asset.is_current_version ? ` · ${t('opsAssetsActive')}` : ''}
+                    </p>
+                    <small>{asset.asset_kind} · {asset.partner_account_id}</small>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="synergi-panel synergi-review-detail-panel synergi-ops-detail-panel">
+            <div className="synergi-review-section-head">
+              <h3>{t('opsDetailTitle')}</h3>
+              <p>{t('opsAssetsDetailSubtitle')}</p>
+            </div>
+
+            {!selectedAsset ? (
+              <div className="synergi-review-empty">{t('opsDetailEmpty')}</div>
+            ) : (
+              <div className="synergi-review-detail">
+                <div className="synergi-review-meta-grid">
+                  <div className="synergi-review-meta-card">
+                    <span>{t('opsPartner')}</span>
+                    <strong>{selectedAsset.partner_account_id}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceAssetVersion')}</span>
+                    <strong>{selectedAsset.version_label || `v${selectedAsset.version_number}`}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceAssetStatus')}</span>
+                    <strong>{t(`workspaceAssetLifecycle_${selectedAsset.lifecycle_status === 'archived' ? 'retired' : selectedAsset.lifecycle_status}`)}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceAssetDownloads')}</span>
+                    <strong>{selectedAsset.download_count}</strong>
+                  </div>
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('opsAssetTitleField')}</span>
+                  <input
+                    className="synergi-input"
+                    value={assetForm.title}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, title: event.target.value }))}
+                    disabled={assetPublishBusyId !== null}
+                  />
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('opsAssetDescriptionField')}</span>
+                  <textarea
+                    className="synergi-input synergi-textarea synergi-review-notes"
+                    value={assetForm.description}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, description: event.target.value }))}
+                    disabled={assetPublishBusyId !== null}
+                  />
+                </div>
+
+                <div className="synergi-review-meta-grid">
+                  <select
+                    className="synergi-select"
+                    value={assetForm.assetKind}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, assetKind: event.target.value as PartnerAssetRecord['asset_kind'] }))}
+                    disabled={assetPublishBusyId !== null}
+                  >
+                    {ASSET_KINDS.map((assetKind) => (
+                      <option key={assetKind} value={assetKind}>
+                        {assetKind}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="synergi-select"
+                    value={assetForm.accessLevel}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, accessLevel: event.target.value as PartnerAssetRecord['access_level'] }))}
+                    disabled={assetPublishBusyId !== null}
+                  >
+                    {ACCESS_LEVELS.map((accessLevel) => (
+                      <option key={accessLevel} value={accessLevel}>
+                        {accessLevel}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="synergi-select"
+                    value={assetForm.lifecycleStatus}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, lifecycleStatus: event.target.value as PartnerAssetRecord['lifecycle_status'] }))}
+                    disabled={assetPublishBusyId !== null}
+                  >
+                    <option value="active">{t('workspaceAssetLifecycle_active')}</option>
+                    <option value="archived">{t('workspaceAssetLifecycle_retired')}</option>
+                    <option value="superseded">{t('workspaceAssetLifecycle_superseded')}</option>
+                  </select>
+                  <input
+                    className="synergi-input"
+                    value={assetForm.versionLabel}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, versionLabel: event.target.value }))}
+                    placeholder={t('opsAssetVersionField')}
+                    disabled={assetPublishBusyId !== null}
+                  />
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('opsAssetSupersededByField')}</span>
+                  <input
+                    className="synergi-input"
+                    value={selectedAsset.superseded_by_asset_id || ''}
+                    readOnly
+                    disabled
+                  />
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('opsFulfillmentUrlField')}</span>
+                  <input
+                    className="synergi-input"
+                    value={assetForm.assetUrl}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, assetUrl: event.target.value }))}
+                    disabled={assetPublishBusyId !== null}
+                  />
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('opsFulfillmentBodyField')}</span>
+                  <textarea
+                    className="synergi-input synergi-textarea synergi-review-notes"
+                    value={assetForm.assetBody}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, assetBody: event.target.value }))}
+                    disabled={assetPublishBusyId !== null}
+                  />
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('opsAssetRetirementReason')}</span>
+                  <textarea
+                    className="synergi-input synergi-textarea synergi-review-notes"
+                    value={assetForm.retirementReason}
+                    onChange={(event) => setAssetForm((current) => ({ ...current, retirementReason: event.target.value }))}
+                    disabled={assetPublishBusyId !== null}
+                  />
+                </div>
+
+                <div className="synergi-review-actions synergi-ops-actions">
+                  <button
+                    type="button"
+                    className="synergi-button synergi-review-action"
+                    onClick={() => void handleAssetUpdate('update')}
+                    disabled={assetPublishBusyId !== null}
+                  >
+                    {assetPublishBusyId === selectedAsset.id ? t('opsSaving') : t('opsSaveNotes')}
+                  </button>
+                  <button
+                    type="button"
+                    className="synergi-button synergi-review-action is-active"
+                    onClick={() => void handleAssetUpdate('publish-version')}
+                    disabled={assetPublishBusyId !== null}
+                  >
+                    {assetPublishBusyId === selectedAsset.id ? t('opsSaving') : t('opsAssetPublishVersion')}
+                  </button>
+                  <button
+                    type="button"
+                    className="synergi-button synergi-review-action is-declined"
+                    onClick={() => void handleAssetUpdate('retire')}
+                    disabled={assetPublishBusyId !== null}
+                  >
+                    {assetPublishBusyId === selectedAsset.id ? t('opsSaving') : t('opsAssetRetire')}
+                  </button>
                 </div>
               </div>
             )}

@@ -11,7 +11,9 @@ import {
   recordSynergiReleaseCheck,
 } from '@/lib/synergi-security'
 
-const ALLOWED_STATUSES = new Set(['passed', 'warning', 'failed'] as const)
+type ReleaseCheckStatus = 'passed' | 'warning' | 'failed'
+
+const ALLOWED_STATUSES = new Set<ReleaseCheckStatus>(['passed', 'warning', 'failed'])
 
 export async function GET(request: NextRequest) {
   const ipAddress = getRequestIp(request)
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get('status')
   const limit = Number(searchParams.get('limit') || '12')
 
-  if (status && !ALLOWED_STATUSES.has(status as (typeof ALLOWED_STATUSES extends Set<infer T> ? T : never))) {
+  if (status && !ALLOWED_STATUSES.has(status as ReleaseCheckStatus)) {
     return NextResponse.json({ error: 'Invalid release status filter.' }, { status: 400 })
   }
 

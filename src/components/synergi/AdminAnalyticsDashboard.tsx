@@ -197,9 +197,29 @@ export function AdminAnalyticsDashboard() {
         help: t('analyticsMetricDownloadsTotalHelp'),
       },
       {
+        label: t('analyticsMetricAssetsCurrent'),
+        value: metrics.assets_current,
+        help: t('analyticsMetricAssetsCurrentHelp'),
+      },
+      {
+        label: t('analyticsMetricAssetsRetired'),
+        value: metrics.assets_retired,
+        help: t('analyticsMetricAssetsRetiredHelp'),
+      },
+      {
+        label: t('analyticsMetricAssetsVersioned'),
+        value: metrics.assets_versioned,
+        help: t('analyticsMetricAssetsVersionedHelp'),
+      },
+      {
         label: t('analyticsMetricActivityTotal'),
         value: metrics.activity_total,
         help: t('analyticsMetricActivityTotalHelp'),
+      },
+      {
+        label: t('analyticsMetricReferralsOwned'),
+        value: metrics.referrals_owned,
+        help: t('analyticsMetricReferralsOwnedHelp'),
       },
       {
         label: t('analyticsMetricReferralsOpen'),
@@ -210,6 +230,11 @@ export function AdminAnalyticsDashboard() {
         label: t('analyticsMetricAssetPacksOpen'),
         value: metrics.asset_packs_open,
         help: t('analyticsMetricAssetPacksOpenHelp'),
+      },
+      {
+        label: t('analyticsMetricAssetPacksDelivered'),
+        value: metrics.asset_packs_delivered,
+        help: t('analyticsMetricAssetPacksDeliveredHelp'),
       },
       {
         label: t('analyticsMetricOpportunitiesActive'),
@@ -280,6 +305,7 @@ export function AdminAnalyticsDashboard() {
             <span>{t('analyticsMetricSubmissionsTotal')}: {data ? formatNumber(language, data.admissions.funnel.total_submissions) : '—'}</span>
             <span>{t('analyticsMetricPartnersActive')}: {data ? formatNumber(language, data.workspace.metrics.active_partners) : '—'}</span>
             <span>{t('analyticsMetricDownloadsTotal')}: {data ? formatNumber(language, data.workspace.metrics.downloads_total) : '—'}</span>
+            <span>{t('analyticsMetricAssetsCurrent')}: {data ? formatNumber(language, data.workspace.metrics.assets_current) : '—'}</span>
             <span>{t('analyticsMetricActivityTotal')}: {data ? formatNumber(language, data.workspace.metrics.activity_total) : '—'}</span>
           </div>
         </section>
@@ -364,8 +390,12 @@ export function AdminAnalyticsDashboard() {
                       <div className="synergi-admin-analytics-partner-grid">
                         <span>{t('workspaceReportingProfileScore')}: {partner.profile_completeness}%</span>
                         <span>{t('analyticsMetricDownloadsTotal')}: {partner.total_downloads}</span>
+                        <span>{t('analyticsMetricAssetsCurrent')}: {partner.assets_current}</span>
+                        <span>{t('analyticsMetricAssetsRetired')}: {partner.assets_retired}</span>
                         <span>{t('analyticsMetricReferralsOpen')}: {partner.referrals_open}</span>
+                        <span>{t('analyticsMetricReferralsOwned')}: {partner.referrals_owned}</span>
                         <span>{t('analyticsMetricAssetPacksOpen')}: {partner.asset_packs_open}</span>
+                        <span>{t('analyticsMetricAssetPacksDelivered')}: {partner.asset_packs_delivered}</span>
                         <span>{t('analyticsMetricOpportunitiesActive')}: {partner.opportunities_active}</span>
                         <span>{t('analyticsMetricActivityTotal')}: {partner.activity_total}</span>
                       </div>

@@ -199,6 +199,9 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
     targetRegion: '',
     neededByLabel: '',
     requestNotes: '',
+    deliveryMethod: 'workspace-asset',
+    deliveryReference: '',
+    deliveryOwner: '',
   })
   async function handleLogout() {
     await fetch('/api/partner/session', { method: 'DELETE' })
@@ -374,6 +377,9 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
         targetRegion: '',
         neededByLabel: '',
         requestNotes: '',
+        deliveryMethod: 'workspace-asset',
+        deliveryReference: '',
+        deliveryOwner: '',
       })
       setModuleNotice(t('workspaceAssetPackSubmitSuccess'))
     } catch (submitError) {
@@ -543,6 +549,21 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
               <small>{t('workspaceReportingAssetsReviewedHelp')}</small>
             </article>
             <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingAssetsCurrent')}</span>
+              <strong>{metrics.assets_current}</strong>
+              <small>{t('workspaceReportingAssetsCurrentHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingAssetsRetired')}</span>
+              <strong>{metrics.assets_retired}</strong>
+              <small>{t('workspaceReportingAssetsRetiredHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingAssetsVersioned')}</span>
+              <strong>{metrics.assets_versioned}</strong>
+              <small>{t('workspaceReportingAssetsVersionedHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
               <span>{t('workspaceReportingDownloads')}</span>
               <strong>{metrics.total_downloads}</strong>
               <small>{t('workspaceReportingDownloadsHelp')}</small>
@@ -556,6 +577,11 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
               <span>{t('workspaceReportingAssetPacks')}</span>
               <strong>{metrics.asset_packs_total}</strong>
               <small>{t('workspaceReportingAssetPacksHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingAssetPacksDelivered')}</span>
+              <strong>{metrics.asset_packs_delivered}</strong>
+              <small>{t('workspaceReportingAssetPacksDeliveredHelp')}</small>
             </article>
             <article className="synergi-workspace-kpi-card">
               <span>{t('workspaceReportingOpportunities')}</span>
@@ -678,7 +704,7 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
           </div>
           {assets.length ? assets.map((asset) => (
             <article key={asset.id} className="synergi-review-content-card">
-              <span>{asset.asset_kind}</span>
+              <span>{asset.asset_kind} · {asset.is_current_version ? t('workspaceAssetCurrent') : t('workspaceAssetVersioned')}</span>
               <p>{asset.title}</p>
               <p className="synergi-workspace-muted">{asset.description || t('workspaceEmptyAssets')}</p>
               <div className="synergi-workspace-inline-meta">
@@ -703,6 +729,10 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
                   <strong>{asset.version_label || '—'}</strong>
                 </div>
                 <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPublishedBy')}</span>
+                  <strong>{asset.published_by || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
                   <span>{t('workspaceAssetSource')}</span>
                   <strong>{t(`workspaceAssetSource_${asset.source_type}`)}</strong>
                 </div>
@@ -710,6 +740,12 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
                   <span>{t('workspaceAssetSuperseded')}</span>
                   <strong>{asset.superseded_by_asset_id || '—'}</strong>
                 </div>
+                {asset.retired_at ? (
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceAssetRetiredAt')}</span>
+                    <strong>{formatDateTime(asset.retired_at, language)}</strong>
+                  </div>
+                ) : null}
               </div>
               <div className="synergi-workspace-action-grid">
                 <button
@@ -793,6 +829,29 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
               onChange={(event) => setAssetPackForm((current) => ({ ...current, requestedAssets: event.target.value }))}
               disabled={submittingAssetPack}
             />
+            <div className="synergi-two-cols">
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceAssetPackDeliveryMethod')}
+                value={assetPackForm.deliveryMethod}
+                onChange={(event) => setAssetPackForm((current) => ({ ...current, deliveryMethod: event.target.value }))}
+                disabled={submittingAssetPack}
+              />
+              <input
+                className="synergi-input"
+                placeholder={t('workspaceAssetPackDeliveryReference')}
+                value={assetPackForm.deliveryReference}
+                onChange={(event) => setAssetPackForm((current) => ({ ...current, deliveryReference: event.target.value }))}
+                disabled={submittingAssetPack}
+              />
+            </div>
+            <input
+              className="synergi-input"
+              placeholder={t('workspaceAssetPackDeliveryOwner')}
+              value={assetPackForm.deliveryOwner}
+              onChange={(event) => setAssetPackForm((current) => ({ ...current, deliveryOwner: event.target.value }))}
+              disabled={submittingAssetPack}
+            />
             <textarea
               className="synergi-textarea synergi-workspace-opportunity-notes"
               placeholder={t('workspaceAssetPackContextPlaceholder')}
@@ -827,7 +886,20 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
                   <span>{t('workspaceAssetPackRequestedAssetsLabel')}</span>
                   <strong>{request.requested_assets.length ? request.requested_assets.join(', ') : '—'}</strong>
                 </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPackDeliveryMethod')}</span>
+                  <strong>{request.delivery_method || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPackDeliveryReference')}</span>
+                  <strong>{request.delivery_reference || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetPackDeliveryOwner')}</span>
+                  <strong>{request.fulfillment_owner || '—'}</strong>
+                </div>
               </div>
+              {request.delivery_notes ? <p className="synergi-workspace-muted">{request.delivery_notes}</p> : null}
             </article>
           )) : (
             <article className="synergi-review-empty">{t('workspaceAssetPacksEmpty')}</article>
