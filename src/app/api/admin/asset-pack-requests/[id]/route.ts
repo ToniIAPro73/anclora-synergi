@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { updateAdminPartnerAssetPackRequest, type PartnerAssetPackRequestRecord } from '@/lib/partner-workspace-store'
+import {
+  buildRateLimitKey,
+  checkRateLimit,
+  getRequestIp,
+  getRequestUserAgent,
+  recordSynergiAuditEvent,
+} from '@/lib/synergi-security'
 
 const ALLOWED_STATUSES = new Set<PartnerAssetPackRequestRecord['status']>([
   'submitted',
@@ -13,14 +20,51 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
   let session
   try {
-    session = await requireAdminSession()
+    session = await requireAdminSession('operator')
   } catch {
+    await recordSynergiAuditEvent({
+      eventType: 'admin_asset_pack_update_denied',
+      actorType: 'admin',
+      actorIdentifier: 'unknown',
+      endpoint: '/api/admin/asset-pack-requests/[id]',
+      method: 'PATCH',
+      statusCode: 401,
+      ipAddress,
+      userAgent,
+    })
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
   const { id } = await context.params
+  const rateLimit = checkRateLimit(
+    buildRateLimitKey(['admin-asset-pack-update', session.username, id, ipAddress || 'unknown']),
+    20,
+    60_000
+  )
+
+  if (!rateLimit.allowed) {
+    await recordSynergiAuditEvent({
+      eventType: 'admin_asset_pack_update_rate_limited',
+      actorType: 'admin',
+      actorIdentifier: session.username,
+      actorRole: session.role,
+      endpoint: '/api/admin/asset-pack-requests/[id]',
+      method: 'PATCH',
+      statusCode: 429,
+      subjectType: 'partner_asset_pack_request',
+      subjectId: id,
+      ipAddress,
+      userAgent,
+    })
+    return NextResponse.json(
+      { error: 'Too many update attempts. Please try again later.' },
+      { status: 429, headers: { 'retry-after': String(rateLimit.retryAfterSeconds || 60) } }
+    )
+  }
 
   let payload: {
     status?: string
@@ -50,6 +94,21 @@ export async function PATCH(
     if (!result?.request) {
       return NextResponse.json({ error: 'Partner asset pack request not found.' }, { status: 404 })
     }
+
+    await recordSynergiAuditEvent({
+      eventType: 'admin_asset_pack_updated',
+      actorType: 'admin',
+      actorIdentifier: session.username,
+      actorRole: session.role,
+      endpoint: '/api/admin/asset-pack-requests/[id]',
+      method: 'PATCH',
+      statusCode: 200,
+      subjectType: 'partner_asset_pack_request',
+      subjectId: result.request.id,
+      ipAddress,
+      userAgent,
+      details: { status: result.request.status, deliveredAssetId: result.deliveredAssetId || null },
+    })
 
     return NextResponse.json({ ok: true, item: result.request, deliveredAssetId: result.deliveredAssetId })
   } catch {

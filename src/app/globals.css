@@ -209,7 +209,7 @@ input {
 
 .synergi-review-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 16px;
 }
 
@@ -669,6 +669,24 @@ input {
   flex-wrap: wrap;
 }
 
+.synergi-review-toolbar--stack {
+  display: grid;
+  gap: 16px;
+}
+
+.synergi-review-search,
+.synergi-ops-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 12px;
+  width: 100%;
+}
+
+.synergi-review-search-input,
+.synergi-review-source-filter {
+  width: 100%;
+}
+
 .synergi-review-filters {
   display: flex;
   flex-wrap: wrap;
@@ -801,6 +819,41 @@ input {
   display: grid;
   gap: 16px;
   margin-top: 22px;
+}
+
+.synergi-review-360-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.synergi-review-handoff-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.synergi-review-timeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.synergi-review-timeline-item {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(247, 241, 231, 0.08);
+  background: rgba(4, 19, 26, 0.34);
+}
+
+.synergi-review-timeline-item span {
+  color: var(--synergi-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.synergi-review-timeline-item strong {
+  color: var(--synergi-cream);
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 .synergi-review-meta-grid {
@@ -1100,6 +1153,191 @@ input {
   margin-top: 22px;
 }
 
+.synergi-workspace-dashboard,
+.synergi-workspace-reporting-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
+  gap: 18px;
+}
+
+.synergi-workspace-dashboard-main,
+.synergi-workspace-dashboard-aside,
+.synergi-workspace-reporting-layout .synergi-workspace-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.synergi-workspace-dashboard-hero {
+  padding: 24px;
+}
+
+.synergi-workspace-dashboard-hero-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.synergi-workspace-dashboard-hero-head span {
+  display: block;
+  color: var(--synergi-champagne);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.synergi-workspace-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(144, 206, 214, 0.2);
+  background: rgba(10, 36, 48, 0.72);
+  color: var(--synergi-cyan);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.synergi-workspace-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.synergi-workspace-kpi-grid--dense {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.synergi-workspace-kpi-card {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(247, 241, 231, 0.08);
+  background: linear-gradient(180deg, rgba(8, 37, 48, 0.85) 0%, rgba(8, 31, 40, 0.76) 100%);
+}
+
+.synergi-workspace-kpi-card span {
+  display: block;
+  color: var(--synergi-champagne);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.synergi-workspace-kpi-card strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.synergi-workspace-kpi-card small {
+  display: block;
+  margin-top: 10px;
+  color: var(--synergi-muted);
+  line-height: 1.6;
+}
+
+.synergi-workspace-notifications-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.synergi-workspace-notification-card {
+  min-height: 100%;
+}
+
+.synergi-workspace-notification-card.is-warning {
+  border-color: rgba(214, 177, 79, 0.28);
+}
+
+.synergi-workspace-notification-card.is-success {
+  border-color: rgba(141, 211, 223, 0.24);
+}
+
+.synergi-workspace-notification-card.is-info {
+  border-color: rgba(144, 206, 214, 0.18);
+}
+
+.synergi-workspace-notification-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.synergi-workspace-notification-card strong {
+  display: block;
+  margin-top: 18px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+}
+
+.synergi-workspace-notification-card p {
+  margin: 12px 0 0;
+  color: var(--synergi-muted);
+  line-height: 1.7;
+}
+
+.synergi-workspace-notification-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.synergi-workspace-notification-footer span {
+  color: var(--synergi-copy);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.synergi-workspace-notification-footer small {
+  color: var(--synergi-muted);
+}
+
+.synergi-workspace-highlight-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.synergi-workspace-highlight-card {
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(247, 241, 231, 0.08);
+  background: rgba(8, 31, 40, 0.58);
+}
+
+.synergi-workspace-highlight-card span {
+  display: block;
+  color: var(--synergi-champagne);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.synergi-workspace-highlight-card strong {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.synergi-workspace-highlight-card p {
+  margin: 10px 0 0;
+  color: var(--synergi-muted);
+  line-height: 1.7;
+}
+
 .synergi-ops-panel {
   margin-top: 24px;
   padding: 30px;
@@ -1203,10 +1441,17 @@ input {
   .synergi-workspace-assets-layout,
   .synergi-workspace-opportunities-layout,
   .synergi-workspace-referrals-layout,
+  .synergi-workspace-dashboard,
+  .synergi-workspace-reporting-layout,
   .synergi-ops-summary-grid,
   .synergi-ops-grid,
+  .synergi-review-search,
+  .synergi-ops-search,
   .synergi-workspace-pack-grid,
   .synergi-review-meta-grid,
+  .synergi-review-360-grid,
+  .synergi-review-handoff-grid,
+  .synergi-review-timeline,
   .synergi-review-actions,
   .synergi-workspace-action-grid,
   .synergi-workspace-referral-actions,
@@ -1243,6 +1488,12 @@ input {
     grid-template-columns: 1fr;
   }
 
+  .synergi-workspace-kpi-grid,
+  .synergi-workspace-kpi-grid--dense,
+  .synergi-workspace-notifications-grid {
+    grid-template-columns: 1fr;
+  }
+
   .synergi-captcha-widget-frame {
     display: flex;
     width: 100%;
@@ -1253,5 +1504,12 @@ input {
   .synergi-review-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .synergi-workspace-dashboard-hero-head,
+  .synergi-workspace-notification-head,
+  .synergi-workspace-notification-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

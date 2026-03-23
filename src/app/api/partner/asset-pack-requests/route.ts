@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requirePartnerSession } from '@/lib/partner-auth'
 import { createPartnerAssetPackRequest, listPartnerAssetPackRequests } from '@/lib/partner-workspace-store'
+import {
+  buildRateLimitKey,
+  checkRateLimit,
+  getRequestIp,
+  getRequestUserAgent,
+  recordSynergiAuditEvent,
+} from '@/lib/synergi-security'
 
 const ALLOWED_PACK_TYPES = new Set(['market-pack', 'brand-pack', 'area-brief', 'custom'] as const)
 
@@ -33,6 +40,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
   let session
   try {
     session = await requirePartnerSession()
@@ -59,6 +68,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON payload.' }, { status: 400 })
   }
 
+  const rateLimit = checkRateLimit(
+    buildRateLimitKey(['partner-asset-pack-create', session.partnerAccountId, ipAddress || 'unknown']),
+    15,
+    60_000
+  )
+  if (!rateLimit.allowed) {
+    await recordSynergiAuditEvent({
+      eventType: 'partner_asset_pack_rate_limited',
+      actorType: 'partner',
+      actorIdentifier: session.partnerAccountId,
+      actorRole: 'partner',
+      endpoint: '/api/partner/asset-pack-requests',
+      method: 'POST',
+      statusCode: 429,
+      ipAddress,
+      userAgent,
+    })
+    return NextResponse.json(
+      { error: 'Too many asset pack attempts. Please try again later.' },
+      { status: 429, headers: { 'retry-after': String(rateLimit.retryAfterSeconds || 60) } }
+    )
+  }
+
   if (!payload.title?.trim()) {
     return NextResponse.json({ error: 'Request title is required.' }, { status: 400 })
   }
@@ -82,6 +114,20 @@ export async function POST(request: NextRequest) {
     if (!assetPackRequest) {
       return NextResponse.json({ error: 'Unable to create the asset pack request.' }, { status: 502 })
     }
+
+    await recordSynergiAuditEvent({
+      eventType: 'partner_asset_pack_requested',
+      actorType: 'partner',
+      actorIdentifier: session.partnerAccountId,
+      actorRole: 'partner',
+      endpoint: '/api/partner/asset-pack-requests',
+      method: 'POST',
+      statusCode: 201,
+      subjectType: 'partner_asset_pack_request',
+      subjectId: assetPackRequest.id,
+      ipAddress,
+      userAgent,
+    })
 
     return NextResponse.json({ ok: true, request: assetPackRequest }, { status: 201 })
   } catch {

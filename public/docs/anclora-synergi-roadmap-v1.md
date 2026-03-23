@@ -132,6 +132,42 @@ Entregables:
 - despliegue estable
 - revisión de observabilidad, errores y privacidad
 
+### Fase 7. Seguridad y operación reforzada
+
+Objetivo:
+- endurecer sesiones, accesos y operacion sensible en todo el producto
+
+Entregables:
+- roles internos minimos
+- rate limiting en accesos y acciones criticas
+- auditoria de acciones sensibles
+- trazabilidad operativa basica
+- guardrails de release y observabilidad
+
+### Fase 8. Admissions backoffice productization
+
+Objetivo:
+- convertir admisiones y decision workflow en una operacion productiva completa
+
+Entregables:
+- cola filtrable y asignable
+- vista 360 de candidatura
+- decision reason y handoff a activacion
+- email lifecycle de aprobacion, rechazo y reenvio
+- trazabilidad operativa de decisiones
+
+### Fase 9. Workspace partner v4 y reporting
+
+Objetivo:
+- profundizar el workspace con lectura 360, reporting y notificaciones utiles
+
+Entregables:
+- dashboard 360 del partner
+- reporting basico de actividad y colaboracion
+- notificaciones o highlights relevantes
+- modulos privados mas profundos
+- evolucion coherente de la experiencia premium
+
 ## 4. Features necesarias
 
 ### Bloque público
@@ -159,6 +195,12 @@ Entregables:
 - `synergi-neon-schema-evolution`
 - `synergi-email-transactional-layer`
 - `synergi-qa-and-release-hardening`
+
+### Bloque siguiente
+
+- `synergi-security-operations-hardening`
+- `synergi-admissions-backoffice-productization`
+- `synergi-partner-workspace-v4`
 
 ## 5. Dependencias críticas
 

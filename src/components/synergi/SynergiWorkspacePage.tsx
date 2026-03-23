@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BriefcaseBusiness, FileStack, LayoutGrid, RadioTower, Sparkles, UserRound } from 'lucide-react'
+import { BarChart3, BellRing, BriefcaseBusiness, FileStack, LayoutGrid, RadioTower, Sparkles, UserRound } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type {
   PartnerActivityEventRecord,
@@ -13,6 +13,7 @@ import type {
   PartnerOpportunityRecord,
   PartnerProfileRecord,
   PartnerReferralRecord,
+  PartnerWorkspaceReportingRecord,
 } from '@/lib/partner-workspace-store'
 
 type WorkspaceProps = {
@@ -23,6 +24,7 @@ type WorkspaceProps = {
   accountStatus: string
   profile: PartnerProfileRecord
   moduleOrder: PartnerModuleKey[]
+  reporting: PartnerWorkspaceReportingRecord
   assets: PartnerAssetRecord[]
   referrals: PartnerReferralRecord[]
   assetPackRequests: PartnerAssetPackRequestRecord[]
@@ -32,6 +34,7 @@ type WorkspaceProps = {
 
 const MODULE_ICONS: Record<PartnerModuleKey, typeof LayoutGrid> = {
   overview: LayoutGrid,
+  reporting: BarChart3,
   'partner-profile': UserRound,
   'assets-documents': FileStack,
   referrals: Sparkles,
@@ -59,6 +62,16 @@ function formatOpportunityDate(value: string, language: 'es' | 'en' | 'de') {
   }).format(new Date(value))
 }
 
+function formatDateTime(value: string, language: 'es' | 'en' | 'de') {
+  return new Intl.DateTimeFormat(language, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
+
 function inferAssetFilename(assetUrl: string | null, title: string) {
   if (assetUrl) {
     const segments = assetUrl.split('?')[0].split('/').filter(Boolean)
@@ -79,6 +92,63 @@ function getAttachmentFilename(contentDisposition: string | null, fallback: stri
 
   const basicMatch = contentDisposition.match(/filename="([^"]+)"/i) || contentDisposition.match(/filename=([^;]+)/i)
   return basicMatch?.[1]?.trim() || fallback
+}
+
+function getNotificationTitleKey(kind: PartnerWorkspaceReportingRecord['notifications'][number]['kind']) {
+  switch (kind) {
+    case 'profile-incomplete':
+      return 'workspaceNotificationProfileIncompleteTitle'
+    case 'referrals-open':
+      return 'workspaceNotificationReferralsOpenTitle'
+    case 'asset-packs-open':
+      return 'workspaceNotificationAssetPacksOpenTitle'
+    case 'opportunities-active':
+      return 'workspaceNotificationOpportunitiesActiveTitle'
+    case 'asset-health':
+      return 'workspaceNotificationAssetHealthTitle'
+    case 'activity-recent':
+      return 'workspaceNotificationActivityRecentTitle'
+    default:
+      return 'workspaceNotificationWorkspaceReadyTitle'
+  }
+}
+
+function getNotificationCopyKey(kind: PartnerWorkspaceReportingRecord['notifications'][number]['kind']) {
+  switch (kind) {
+    case 'profile-incomplete':
+      return 'workspaceNotificationProfileIncompleteCopy'
+    case 'referrals-open':
+      return 'workspaceNotificationReferralsOpenCopy'
+    case 'asset-packs-open':
+      return 'workspaceNotificationAssetPacksOpenCopy'
+    case 'opportunities-active':
+      return 'workspaceNotificationOpportunitiesActiveCopy'
+    case 'asset-health':
+      return 'workspaceNotificationAssetHealthCopy'
+    case 'activity-recent':
+      return 'workspaceNotificationActivityRecentCopy'
+    default:
+      return 'workspaceNotificationWorkspaceReadyCopy'
+  }
+}
+
+function getFocusLabelKey(focusLabel: string) {
+  switch (focusLabel) {
+    case 'Follow up open referrals':
+      return 'workspaceFocus_followUpOpenReferrals'
+    case 'Prepare or resolve asset packs':
+      return 'workspaceFocus_prepareResolveAssetPacks'
+    case 'Review active opportunities':
+      return 'workspaceFocus_reviewActiveOpportunities'
+    case 'Keep referrals and introductions flowing':
+      return 'workspaceFocus_keepReferralsFlowing'
+    case 'Refresh reports and market materials':
+      return 'workspaceFocus_refreshReports'
+    case 'Align assets and delivery milestones':
+      return 'workspaceFocus_alignAssets'
+    default:
+      return 'workspaceFocus_maintainWorkspace'
+  }
 }
 
 export function SynergiWorkspacePage(props: WorkspaceProps) {
@@ -367,27 +437,158 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
 
   function renderOverview() {
     return (
-      <div className="synergi-workspace-module-grid">
-        <article className="synergi-review-content-card">
-          <span>{t('workspaceOverviewTitle')}</span>
-          <p>{props.welcomeNote || t('workspaceSubtitle')}</p>
-        </article>
-        <article className="synergi-review-content-card">
-          <span>{t('workspaceProfileType')}</span>
-          <p>{t(`workspaceProfileType_${props.profile.partner_profile_type}`)}</p>
-        </article>
-        <article className="synergi-review-content-card">
-          <span>{t('workspaceStatus')}</span>
-          <p>{t(`workspaceStatus_${props.accountStatus}`)}</p>
-        </article>
-        <article className="synergi-review-content-card">
-          <span>{t('workspaceCollaborationScope')}</span>
-          <p>{normalizeLabel(props.profile.collaboration_scope)}</p>
-        </article>
-        <article className="synergi-review-content-card">
-          <span>{t('workspaceModulePriority')}</span>
-          <p>{props.moduleOrder.map((module) => t(`workspaceTab_${module}`)).join(' / ')}</p>
-        </article>
+      <div className="synergi-workspace-dashboard">
+        <section className="synergi-workspace-dashboard-main">
+          <article className="synergi-review-content-card synergi-workspace-dashboard-hero">
+            <div className="synergi-workspace-dashboard-hero-head">
+              <div>
+                <span>{t('workspaceOverviewTitle')}</span>
+                <p>{props.welcomeNote || t('workspaceSubtitle')}</p>
+              </div>
+              <strong className="synergi-workspace-hero-pill">{t(getFocusLabelKey(props.reporting.focus_label))}</strong>
+            </div>
+
+            <div className="synergi-workspace-kpi-grid">
+              <article className="synergi-workspace-kpi-card">
+                <span>{t('workspaceReportingProfileScore')}</span>
+                <strong>{props.reporting.profile_completeness}%</strong>
+                <small>{t('workspaceReportingProfileScoreHelp')}</small>
+              </article>
+              <article className="synergi-workspace-kpi-card">
+                <span>{t('workspaceReportingAccount')}</span>
+                <strong>{t(`workspaceStatus_${props.accountStatus}`)}</strong>
+                <small>{t(`workspaceProfileType_${props.profile.partner_profile_type}`)}</small>
+              </article>
+              <article className="synergi-workspace-kpi-card">
+                <span>{t('workspaceReportingActivity')}</span>
+                <strong>{props.reporting.metrics.activity_total}</strong>
+                <small>{props.reporting.last_activity_at ? formatDateTime(props.reporting.last_activity_at, language) : t('reviewValueMissing')}</small>
+              </article>
+              <article className="synergi-workspace-kpi-card">
+                <span>{t('workspaceReportingModuleChain')}</span>
+                <strong>{props.moduleOrder.length}</strong>
+                <small>{props.moduleOrder.map((module) => t(`workspaceTab_${module}`)).join(' · ')}</small>
+              </article>
+            </div>
+          </article>
+
+          <div className="synergi-workspace-notifications-grid">
+            {props.reporting.notifications.map((notification) => (
+              <article key={notification.id} className={`synergi-review-content-card synergi-workspace-notification-card is-${notification.severity}`}>
+                <div className="synergi-workspace-notification-head">
+                  <BellRing className="synergi-signal-icon is-cyan" />
+                  <span className={`synergi-workspace-notification-badge is-${notification.severity}`}>
+                    {t(`workspaceNotificationSeverity_${notification.severity}`)}
+                  </span>
+                </div>
+                <strong>{t(getNotificationTitleKey(notification.kind))}</strong>
+                <p>{t(getNotificationCopyKey(notification.kind))}</p>
+                <div className="synergi-workspace-notification-footer">
+                  <span>{notification.count !== null ? `${notification.count}` : '—'}</span>
+                  <small>{formatDateTime(notification.created_at, language)}</small>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="synergi-workspace-dashboard-aside">
+          <article className="synergi-review-content-card">
+            <span>{t('workspaceReportingHighlightsTitle')}</span>
+            <p>{t('workspaceReportingHighlightsSubtitle')}</p>
+            <div className="synergi-workspace-highlight-stack">
+              {props.reporting.highlights.length ? props.reporting.highlights.map((event) => (
+                <article key={event.id} className="synergi-workspace-highlight-card">
+                  <span>{t(`workspaceActivityType_${event.event_type}`)}</span>
+                  <strong>{event.title}</strong>
+                  <p>{event.description || t('workspaceEmptyActivity')}</p>
+                </article>
+              )) : (
+                <article className="synergi-review-empty">{t('workspaceEmptyActivity')}</article>
+              )}
+            </div>
+          </article>
+
+          <article className="synergi-review-content-card">
+            <span>{t('workspaceModulePriority')}</span>
+            <p>{props.moduleOrder.map((module) => t(`workspaceTab_${module}`)).join(' / ')}</p>
+          </article>
+        </aside>
+      </div>
+    )
+  }
+
+  function renderReporting() {
+    const metrics = props.reporting.metrics
+
+    return (
+      <div className="synergi-workspace-reporting-layout">
+        <section className="synergi-workspace-stack">
+          <div className="synergi-review-section-head">
+            <h3>{t('workspaceReportingDeepTitle')}</h3>
+            <p>{t('workspaceReportingDeepSubtitle')}</p>
+          </div>
+
+          <div className="synergi-workspace-kpi-grid synergi-workspace-kpi-grid--dense">
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingAssetsTotal')}</span>
+              <strong>{metrics.assets_total}</strong>
+              <small>{t('workspaceReportingAssetsTotalHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingAssetsReviewed')}</span>
+              <strong>{metrics.assets_reviewed}</strong>
+              <small>{t('workspaceReportingAssetsReviewedHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingDownloads')}</span>
+              <strong>{metrics.total_downloads}</strong>
+              <small>{t('workspaceReportingDownloadsHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingReferrals')}</span>
+              <strong>{metrics.referrals_total}</strong>
+              <small>{t('workspaceReportingReferralsHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingAssetPacks')}</span>
+              <strong>{metrics.asset_packs_total}</strong>
+              <small>{t('workspaceReportingAssetPacksHelp')}</small>
+            </article>
+            <article className="synergi-workspace-kpi-card">
+              <span>{t('workspaceReportingOpportunities')}</span>
+              <strong>{metrics.opportunities_total}</strong>
+              <small>{t('workspaceReportingOpportunitiesHelp')}</small>
+            </article>
+          </div>
+        </section>
+
+        <aside className="synergi-workspace-stack">
+          <article className="synergi-review-content-card">
+            <span>{t('workspaceReportingSignalsTitle')}</span>
+            <p>{t('workspaceReportingSignalsSubtitle')}</p>
+            <div className="synergi-workspace-highlight-stack">
+              {props.reporting.notifications.map((notification) => (
+                <article key={notification.id} className={`synergi-workspace-highlight-card is-${notification.severity}`}>
+                  <div className="synergi-workspace-notification-head">
+                    <BellRing className="synergi-signal-icon is-cyan" />
+                    <strong>{t(getNotificationTitleKey(notification.kind))}</strong>
+                  </div>
+                  <p>{t(getNotificationCopyKey(notification.kind))}</p>
+                  <small>
+                    {notification.count !== null
+                      ? `${t('workspaceReportingSignalCount')} ${notification.count}`
+                      : formatDateTime(notification.created_at, language)}
+                  </small>
+                </article>
+              ))}
+            </div>
+          </article>
+          <article className="synergi-review-content-card">
+            <span>{t('workspaceReportingModuleMap')}</span>
+            <p>{props.moduleOrder.map((module) => t(`workspaceTab_${module}`)).join(' · ')}</p>
+          </article>
+        </aside>
       </div>
     )
   }
@@ -904,6 +1105,8 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
 
   function renderModuleContent() {
     switch (activeModule) {
+      case 'reporting':
+        return renderReporting()
       case 'partner-profile':
         return renderProfile()
       case 'assets-documents':

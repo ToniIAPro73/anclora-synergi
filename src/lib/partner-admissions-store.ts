@@ -41,6 +41,10 @@ export type PartnerAdmissionRecord = {
   submission_source: string
   status: PartnerAdmissionStatus
   review_notes: string | null
+  decision_reason: string | null
+  handoff_state: string | null
+  priority_label: string | null
+  assigned_to: string | null
   reviewed_at: string | null
   reviewed_by?: string | null
   created_at: string
@@ -74,6 +78,38 @@ export type PartnerWorkspaceRecord = {
   updated_at: string
 }
 
+export type PartnerAdmissionDecisionRecord = {
+  id: string
+  admission_id: string
+  decided_status: string
+  decided_by: string | null
+  review_notes: string | null
+  decision_channel: string | null
+  decision_summary: string | null
+  email_template_key: string | null
+  activation_state: string | null
+  created_at: string
+}
+
+export type PartnerAdmissionReviewBundle = {
+  admission: PartnerAdmissionRecord
+  account: PartnerAccountRecord | null
+  workspace: PartnerWorkspaceRecord | null
+  decisionHistory: PartnerAdmissionDecisionRecord[]
+  auditTrail: Array<{
+    id: string
+    event_type: string
+    actor_type: string
+    actor_identifier: string | null
+    actor_role: string | null
+    status_code: number | null
+    subject_type: string | null
+    subject_id: string | null
+    created_at: string
+    details: unknown
+  }>
+}
+
 declare global {
   var __ancloraSynergiPartnerAdmissionsSchemaReady: Promise<void> | undefined
 }
@@ -104,6 +140,10 @@ export async function ensurePartnerAdmissionsSchema() {
       submission_source TEXT NOT NULL DEFAULT 'synergi',
       status TEXT NOT NULL DEFAULT 'submitted',
       review_notes TEXT,
+      decision_reason TEXT,
+      handoff_state TEXT,
+      priority_label TEXT,
+      assigned_to TEXT,
       reviewed_at TIMESTAMPTZ,
       reviewed_by TEXT,
       partner_account_id UUID,
@@ -116,6 +156,26 @@ export async function ensurePartnerAdmissionsSchema() {
   await sql`
     ALTER TABLE partner_admissions
       ADD COLUMN IF NOT EXISTS review_notes TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_admissions
+      ADD COLUMN IF NOT EXISTS decision_reason TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_admissions
+      ADD COLUMN IF NOT EXISTS handoff_state TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_admissions
+      ADD COLUMN IF NOT EXISTS priority_label TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_admissions
+      ADD COLUMN IF NOT EXISTS assigned_to TEXT;
   `
 
   await sql`
@@ -175,8 +235,32 @@ export async function ensurePartnerAdmissionsSchema() {
       decided_status TEXT NOT NULL,
       decided_by TEXT,
       review_notes TEXT,
+      decision_channel TEXT,
+      decision_summary TEXT,
+      email_template_key TEXT,
+      activation_state TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `
+
+  await sql`
+    ALTER TABLE partner_admission_decisions
+      ADD COLUMN IF NOT EXISTS decision_channel TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_admission_decisions
+      ADD COLUMN IF NOT EXISTS decision_summary TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_admission_decisions
+      ADD COLUMN IF NOT EXISTS email_template_key TEXT;
+  `
+
+  await sql`
+    ALTER TABLE partner_admission_decisions
+      ADD COLUMN IF NOT EXISTS activation_state TEXT;
   `
 
   await sql`
@@ -244,12 +328,17 @@ export async function createPartnerAdmission(input: CreatePartnerAdmissionInput)
 
 export async function listPartnerAdmissions(params: {
   status?: PartnerAdmissionStatus
+  query?: string
+  submissionSource?: string
   limit?: number
 }) {
   globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
   await globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady
 
   const limit = Math.max(1, Math.min(200, params.limit ?? 50))
+  const query = params.query?.trim() || ''
+  const queryLike = query ? `%${query}%` : null
+  const source = params.submissionSource?.trim() || ''
 
   const rows = params.status
     ? await sql`
@@ -273,6 +362,10 @@ export async function listPartnerAdmissions(params: {
           submission_source,
           status,
           review_notes,
+          decision_reason,
+          handoff_state,
+          priority_label,
+          assigned_to,
           reviewed_at,
           reviewed_by,
           partner_account_id,
@@ -281,6 +374,21 @@ export async function listPartnerAdmissions(params: {
           updated_at
         FROM partner_admissions
         WHERE status = ${params.status}
+          AND (${source || null}::text IS NULL OR submission_source = ${source || null})
+          AND (
+            ${queryLike}::text IS NULL
+            OR lower(full_name) LIKE lower(${queryLike})
+            OR lower(email) LIKE lower(${queryLike})
+            OR lower(COALESCE(company_name, '')) LIKE lower(${queryLike})
+            OR lower(service_category) LIKE lower(${queryLike})
+            OR lower(service_summary) LIKE lower(${queryLike})
+            OR lower(COALESCE(collaboration_pitch, '')) LIKE lower(${queryLike})
+            OR lower(submission_source) LIKE lower(${queryLike})
+            OR lower(COALESCE(review_notes, '')) LIKE lower(${queryLike})
+            OR lower(COALESCE(decision_reason, '')) LIKE lower(${queryLike})
+            OR lower(COALESCE(priority_label, '')) LIKE lower(${queryLike})
+            OR lower(COALESCE(handoff_state, '')) LIKE lower(${queryLike})
+          )
         ORDER BY created_at DESC
         LIMIT ${limit};
       `
@@ -305,6 +413,10 @@ export async function listPartnerAdmissions(params: {
           submission_source,
           status,
           review_notes,
+          decision_reason,
+          handoff_state,
+          priority_label,
+          assigned_to,
           reviewed_at,
           reviewed_by,
           partner_account_id,
@@ -312,6 +424,21 @@ export async function listPartnerAdmissions(params: {
           created_at,
           updated_at
         FROM partner_admissions
+        WHERE (${source || null}::text IS NULL OR submission_source = ${source || null})
+          AND (
+            ${queryLike}::text IS NULL
+            OR lower(full_name) LIKE lower(${queryLike})
+            OR lower(email) LIKE lower(${queryLike})
+            OR lower(COALESCE(company_name, '')) LIKE lower(${queryLike})
+            OR lower(service_category) LIKE lower(${queryLike})
+            OR lower(service_summary) LIKE lower(${queryLike})
+            OR lower(COALESCE(collaboration_pitch, '')) LIKE lower(${queryLike})
+            OR lower(submission_source) LIKE lower(${queryLike})
+            OR lower(COALESCE(review_notes, '')) LIKE lower(${queryLike})
+            OR lower(COALESCE(decision_reason, '')) LIKE lower(${queryLike})
+            OR lower(COALESCE(priority_label, '')) LIKE lower(${queryLike})
+            OR lower(COALESCE(handoff_state, '')) LIKE lower(${queryLike})
+          )
         ORDER BY created_at DESC
         LIMIT ${limit};
       `
@@ -323,6 +450,10 @@ export async function reviewPartnerAdmission(input: {
   id: string
   status: Exclude<PartnerAdmissionStatus, 'submitted'>
   reviewNotes?: string
+  decisionReason?: string
+  handoffState?: string
+  priorityLabel?: string
+  assignedTo?: string
   reviewedBy?: string
 }) {
   globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
@@ -333,6 +464,10 @@ export async function reviewPartnerAdmission(input: {
     SET
       status = ${input.status},
       review_notes = ${input.reviewNotes?.trim() || null},
+      decision_reason = ${input.decisionReason?.trim() || null},
+      handoff_state = ${input.handoffState?.trim() || null},
+      priority_label = ${input.priorityLabel?.trim() || null},
+      assigned_to = ${input.assignedTo?.trim() || null},
       reviewed_at = NOW(),
       reviewed_by = ${input.reviewedBy?.trim() || null},
       updated_at = NOW()
@@ -357,6 +492,10 @@ export async function reviewPartnerAdmission(input: {
       submission_source,
       status,
       review_notes,
+      decision_reason,
+      handoff_state,
+      priority_label,
+      assigned_to,
       reviewed_at,
       reviewed_by,
       created_at,
@@ -521,6 +660,10 @@ export async function issuePartnerInvite(input: {
 export async function acceptPartnerAdmission(input: {
   admissionId: string
   reviewNotes?: string
+  decisionReason?: string
+  handoffState?: string
+  priorityLabel?: string
+  assignedTo?: string
   reviewedBy?: string
 }) {
   globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
@@ -613,6 +756,10 @@ export async function acceptPartnerAdmission(input: {
     SET
       status = 'accepted',
       review_notes = ${input.reviewNotes?.trim() || null},
+      decision_reason = ${input.decisionReason?.trim() || input.reviewNotes?.trim() || null},
+      handoff_state = ${input.handoffState?.trim() || 'invite_issued'},
+      priority_label = ${input.priorityLabel?.trim() || null},
+      assigned_to = ${input.assignedTo?.trim() || null},
       reviewed_at = NOW(),
       reviewed_by = ${input.reviewedBy?.trim() || null},
       partner_account_id = ${account.id},
@@ -639,6 +786,10 @@ export async function acceptPartnerAdmission(input: {
       submission_source,
       status,
       review_notes,
+      decision_reason,
+      handoff_state,
+      priority_label,
+      assigned_to,
       reviewed_at,
       reviewed_by,
       partner_account_id,
@@ -652,13 +803,21 @@ export async function acceptPartnerAdmission(input: {
       admission_id,
       decided_status,
       decided_by,
-      review_notes
+      review_notes,
+      decision_channel,
+      decision_summary,
+      email_template_key,
+      activation_state
     )
     VALUES (
       ${input.admissionId},
       'accepted',
       ${input.reviewedBy?.trim() || null},
-      ${input.reviewNotes?.trim() || null}
+      ${input.reviewNotes?.trim() || null},
+      'backoffice',
+      ${input.decisionReason?.trim() || input.reviewNotes?.trim() || null},
+      'partner-accepted',
+      ${input.handoffState?.trim() || 'invite_issued'}
     );
   `
 
@@ -675,6 +834,10 @@ export async function updatePartnerAdmissionStatus(input: {
   id: string
   status: Exclude<PartnerAdmissionStatus, 'submitted' | 'accepted'>
   reviewNotes?: string
+  decisionReason?: string
+  handoffState?: string
+  priorityLabel?: string
+  assignedTo?: string
   reviewedBy?: string
 }) {
   globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
@@ -685,6 +848,10 @@ export async function updatePartnerAdmissionStatus(input: {
     SET
       status = ${input.status},
       review_notes = ${input.reviewNotes?.trim() || null},
+      decision_reason = ${input.decisionReason?.trim() || input.reviewNotes?.trim() || null},
+      handoff_state = ${input.handoffState?.trim() || (input.status === 'rejected' ? 'closed' : 'in_review')},
+      priority_label = ${input.priorityLabel?.trim() || null},
+      assigned_to = ${input.assignedTo?.trim() || null},
       reviewed_at = NOW(),
       reviewed_by = ${input.reviewedBy?.trim() || null},
       updated_at = NOW()
@@ -709,6 +876,10 @@ export async function updatePartnerAdmissionStatus(input: {
       submission_source,
       status,
       review_notes,
+      decision_reason,
+      handoff_state,
+      priority_label,
+      assigned_to,
       reviewed_at,
       reviewed_by,
       partner_account_id,
@@ -720,20 +891,155 @@ export async function updatePartnerAdmissionStatus(input: {
   const updated = (rows[0] as PartnerAdmissionRecord | undefined) ?? null
   if (updated) {
     await sql`
-      INSERT INTO partner_admission_decisions (
-        admission_id,
-        decided_status,
-        decided_by,
-        review_notes
-      )
-      VALUES (
-        ${input.id},
-        ${input.status},
-        ${input.reviewedBy?.trim() || null},
-        ${input.reviewNotes?.trim() || null}
-      );
-    `
+    INSERT INTO partner_admission_decisions (
+      admission_id,
+      decided_status,
+      decided_by,
+      review_notes,
+      decision_channel,
+      decision_summary,
+      email_template_key,
+      activation_state
+    )
+    VALUES (
+      ${input.id},
+      ${input.status},
+      ${input.reviewedBy?.trim() || null},
+      ${input.reviewNotes?.trim() || null},
+      'backoffice',
+      ${input.decisionReason?.trim() || input.reviewNotes?.trim() || null},
+      ${input.status === 'rejected' ? 'partner-rejected' : 'partner-review-update'},
+      ${input.status === 'rejected' ? 'closed' : 'in_review'}
+    );
+  `
   }
 
   return updated
+}
+
+export async function getPartnerAdmissionReviewBundle(admissionId: string) {
+  globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
+  await globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady
+
+  const admissions = await sql<PartnerAdmissionRecord>`
+    SELECT
+      id,
+      full_name,
+      email,
+      company_name,
+      service_category,
+      service_summary,
+      collaboration_pitch,
+      coverage_areas,
+      languages,
+      sustainability_focus,
+      privacy_accepted,
+      newsletter_opt_in,
+      captcha_provider,
+      captcha_verified,
+      captcha_hostname,
+      submission_language,
+      submission_source,
+      status,
+      review_notes,
+      decision_reason,
+      handoff_state,
+      priority_label,
+      assigned_to,
+      reviewed_at,
+      reviewed_by,
+      partner_account_id,
+      partner_workspace_id,
+      created_at,
+      updated_at
+    FROM partner_admissions
+    WHERE id = ${admissionId}
+    LIMIT 1;
+  `
+
+  const admission = admissions[0]
+  if (!admission) return null
+
+  const decisionHistory = await sql<PartnerAdmissionDecisionRecord>`
+    SELECT
+      id,
+      admission_id,
+      decided_status,
+      decided_by,
+      review_notes,
+      decision_channel,
+      decision_summary,
+      email_template_key,
+      activation_state,
+      created_at
+    FROM partner_admission_decisions
+    WHERE admission_id = ${admissionId}
+    ORDER BY created_at DESC
+    LIMIT 12;
+  `
+
+  const accountRows = admission.partner_account_id
+    ? await sql<PartnerAccountRecord>`
+        SELECT
+          id,
+          admission_id,
+          email,
+          full_name,
+          company_name,
+          account_status,
+          invite_code_hash,
+          invite_code_expires_at,
+          activated_at,
+          last_login_at,
+          created_at,
+          updated_at
+        FROM partner_accounts
+        WHERE id = ${admission.partner_account_id}
+        LIMIT 1;
+      `
+    : []
+
+  const workspaceRows = admission.partner_workspace_id
+    ? await sql<PartnerWorkspaceRecord>`
+        SELECT
+          id,
+          partner_account_id,
+          workspace_status,
+          display_name,
+          welcome_note,
+          created_at,
+          updated_at
+        FROM partner_workspaces
+        WHERE id = ${admission.partner_workspace_id}
+        LIMIT 1;
+      `
+    : []
+
+  const auditTrail = await sql<PartnerAdmissionReviewBundle['auditTrail'][number]>`
+    SELECT
+      id,
+      event_type,
+      actor_type,
+      actor_identifier,
+      actor_role,
+      status_code,
+      subject_type,
+      subject_id,
+      created_at,
+      details
+    FROM synergi_audit_events
+    WHERE actor_identifier = ${admission.email}
+      OR (subject_type = 'partner_admission' AND subject_id = ${admission.id})
+      OR (${admission.partner_account_id || null}::text IS NOT NULL AND subject_id = ${admission.partner_account_id || null})
+    ORDER BY created_at DESC
+    LIMIT 16;
+  `.catch(() => [])
+
+  return {
+    admission,
+    account: accountRows[0] ?? null,
+    workspace: workspaceRows[0] ?? null,
+    decisionHistory,
+    auditTrail,
+  } satisfies PartnerAdmissionReviewBundle
 }

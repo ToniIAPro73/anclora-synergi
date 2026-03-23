@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ClipboardCheck, RefreshCcw, ShieldCheck, Sparkles } from 'lucide-react'
@@ -29,6 +29,10 @@ type PartnerAdmissionRecord = {
   submission_source: string
   status: PartnerAdmissionStatus
   review_notes: string | null
+  decision_reason: string | null
+  handoff_state: string | null
+  priority_label: string | null
+  assigned_to: string | null
   reviewed_at: string | null
   reviewed_by?: string | null
   created_at: string
@@ -90,7 +94,13 @@ export function PartnerAdmissionsReviewPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<PartnerAdmissionStatus | 'all'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sourceFilter, setSourceFilter] = useState('all')
   const [reviewNotes, setReviewNotes] = useState('')
+  const [decisionReason, setDecisionReason] = useState('')
+  const [handoffState, setHandoffState] = useState('in_review')
+  const [priorityLabel, setPriorityLabel] = useState('')
+  const [assignedTo, setAssignedTo] = useState('')
   const [savingStatus, setSavingStatus] = useState<PartnerAdmissionStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -105,7 +115,12 @@ export function PartnerAdmissionsReviewPage() {
     window.location.assign('/partner-admissions/login')
   }
 
-  async function loadAdmissions(nextFilter = statusFilter, showRefreshState = false) {
+  const loadAdmissions = useCallback(async (
+    nextFilter = statusFilter,
+    showRefreshState = false,
+    query = searchQuery,
+    source = sourceFilter
+  ) => {
     if (showRefreshState) setRefreshing(true)
     else setLoading(true)
     setError(null)
@@ -113,6 +128,8 @@ export function PartnerAdmissionsReviewPage() {
     try {
       const params = new URLSearchParams()
       if (nextFilter !== 'all') params.set('status', nextFilter)
+      if (query.trim()) params.set('q', query.trim())
+      if (source !== 'all') params.set('source', source)
       const response = await fetch(`/api/partner-admissions?${params.toString()}`, { cache: 'no-store' })
       const body = (await response.json()) as AdmissionsResponse | { error?: string }
 
@@ -131,12 +148,15 @@ export function PartnerAdmissionsReviewPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }
+  }, [searchQuery, sourceFilter, statusFilter, t])
 
   useEffect(() => {
-    void loadAdmissions(statusFilter)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter])
+    const timeout = window.setTimeout(() => {
+      void loadAdmissions(statusFilter, false, searchQuery, sourceFilter)
+    }, 240)
+
+    return () => window.clearTimeout(timeout)
+  }, [loadAdmissions, searchQuery, sourceFilter, statusFilter])
 
   const selectedAdmission = useMemo(
     () => items.find((item) => item.id === selectedId) ?? null,
@@ -145,6 +165,17 @@ export function PartnerAdmissionsReviewPage() {
 
   useEffect(() => {
     setReviewNotes(selectedAdmission?.review_notes || '')
+    setDecisionReason(selectedAdmission?.decision_reason || selectedAdmission?.review_notes || '')
+    setHandoffState(
+      selectedAdmission?.handoff_state ||
+        (selectedAdmission?.status === 'accepted'
+          ? 'invite_issued'
+          : selectedAdmission?.status === 'rejected'
+            ? 'closed'
+            : 'in_review')
+    )
+    setPriorityLabel(selectedAdmission?.priority_label || '')
+    setAssignedTo(selectedAdmission?.assigned_to || '')
     setNotice(null)
     if (decisionPayload && selectedAdmission?.id !== decisionPayload.admissionId) {
       setDecisionPayload(null)
@@ -156,6 +187,8 @@ export function PartnerAdmissionsReviewPage() {
       (acc, item) => {
         acc.total += 1
         acc[item.status] += 1
+        if (item.review_notes || item.decision_reason) acc.traced += 1
+        if (item.handoff_state && item.handoff_state !== 'in_review') acc.handoff += 1
         return acc
       },
       {
@@ -164,8 +197,14 @@ export function PartnerAdmissionsReviewPage() {
         under_review: 0,
         accepted: 0,
         rejected: 0,
+        traced: 0,
+        handoff: 0,
       }
     )
+  }, [items])
+
+  const sourceOptions = useMemo(() => {
+    return Array.from(new Set(items.map((item) => item.submission_source))).sort()
   }, [items])
 
   async function handleReview(status: Exclude<PartnerAdmissionStatus, 'submitted'>) {
@@ -184,6 +223,10 @@ export function PartnerAdmissionsReviewPage() {
         body: JSON.stringify({
           status,
           reviewNotes,
+          decisionReason,
+          handoffState,
+          priorityLabel,
+          assignedTo,
         }),
       })
 
@@ -274,10 +317,36 @@ export function PartnerAdmissionsReviewPage() {
               <strong>{summary.accepted}</strong>
               <span>{t('reviewSummaryAccepted')}</span>
             </article>
+            <article className="synergi-review-summary-card">
+              <ClipboardCheck className="synergi-signal-icon is-cyan" />
+              <strong>{summary.traced}</strong>
+              <span>{t('reviewSummaryTraced')}</span>
+            </article>
           </div>
         </section>
 
-        <div className="synergi-review-toolbar">
+        <div className="synergi-review-toolbar synergi-review-toolbar--stack">
+          <div className="synergi-review-search">
+            <input
+              className="synergi-input synergi-review-search-input"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={t('reviewSearchPlaceholder')}
+            />
+            <select
+              className="synergi-select synergi-review-source-filter"
+              value={sourceFilter}
+              onChange={(event) => setSourceFilter(event.target.value)}
+            >
+              <option value="all">{t('reviewSource_all')}</option>
+              {sourceOptions.map((source) => (
+                <option key={source} value={source}>
+                  {source === 'synergi' ? t('reviewSource_synergi') : source}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="synergi-review-filters">
             {(['all', 'submitted', 'under_review', 'accepted', 'rejected'] as const).map((status) => (
               <button
@@ -294,7 +363,7 @@ export function PartnerAdmissionsReviewPage() {
           <button
             type="button"
             className="synergi-review-refresh"
-            onClick={() => void loadAdmissions(statusFilter, true)}
+            onClick={() => void loadAdmissions(statusFilter, true, searchQuery, sourceFilter)}
             disabled={refreshing}
           >
             <RefreshCcw size={16} />
@@ -379,7 +448,7 @@ export function PartnerAdmissionsReviewPage() {
                   <p>{selectedAdmission.collaboration_pitch || t('reviewValueMissing')}</p>
                 </div>
 
-                <div className="synergi-review-meta-grid">
+                <div className="synergi-review-meta-grid synergi-review-360-grid">
                   <div className="synergi-review-meta-card">
                     <span>{t('reviewFieldLanguages')}</span>
                     <strong>{normalizeTextList(selectedAdmission.languages).join(', ') || t('reviewValueMissing')}</strong>
@@ -403,6 +472,101 @@ export function PartnerAdmissionsReviewPage() {
                   <div className="synergi-review-meta-card">
                     <span>{t('reviewFieldReviewedAt')}</span>
                     <strong>{selectedAdmission.reviewed_at ? formatDate(selectedAdmission.reviewed_at, language) : t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldPriority')}</span>
+                    <strong>{selectedAdmission.priority_label || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldAssignedTo')}</span>
+                    <strong>{selectedAdmission.assigned_to || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldDecisionReason')}</span>
+                    <strong>{selectedAdmission.decision_reason || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldHandoffState')}</span>
+                    <strong>{selectedAdmission.handoff_state || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldPartnerAccount')}</span>
+                    <strong>{selectedAdmission.partner_account_id || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldPartnerWorkspace')}</span>
+                    <strong>{selectedAdmission.partner_workspace_id || t('reviewValueMissing')}</strong>
+                  </div>
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('review360Title')}</span>
+                  <div className="synergi-review-timeline">
+                    <div className="synergi-review-timeline-item">
+                      <span>{t('reviewTimelineSubmitted')}</span>
+                      <strong>{formatDate(selectedAdmission.created_at, language)}</strong>
+                    </div>
+                    <div className="synergi-review-timeline-item">
+                      <span>{t('reviewTimelineReviewed')}</span>
+                      <strong>{selectedAdmission.reviewed_at ? formatDate(selectedAdmission.reviewed_at, language) : t('reviewValueMissing')}</strong>
+                    </div>
+                    <div className="synergi-review-timeline-item">
+                      <span>{t('reviewTimelineHandoff')}</span>
+                      <strong>{selectedAdmission.handoff_state || t('reviewValueMissing')}</strong>
+                    </div>
+                    <div className="synergi-review-timeline-item">
+                      <span>{t('reviewTimelineTraceability')}</span>
+                      <strong>{selectedAdmission.review_notes || selectedAdmission.decision_reason || t('reviewValueMissing')}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="synergi-review-content-card">
+                  <span>{t('reviewDecisionReasonLabel')}</span>
+                  <textarea
+                    className="synergi-input synergi-textarea synergi-review-notes"
+                    value={decisionReason}
+                    onChange={(event) => setDecisionReason(event.target.value)}
+                    placeholder={t('reviewDecisionReasonPlaceholder')}
+                    disabled={savingStatus !== null}
+                  />
+                </div>
+
+                <div className="synergi-review-meta-grid synergi-review-handoff-grid">
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldPriority')}</span>
+                    <input
+                      className="synergi-input"
+                      value={priorityLabel}
+                      onChange={(event) => setPriorityLabel(event.target.value)}
+                      placeholder={t('reviewPriorityPlaceholder')}
+                      disabled={savingStatus !== null}
+                    />
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldAssignedTo')}</span>
+                    <input
+                      className="synergi-input"
+                      value={assignedTo}
+                      onChange={(event) => setAssignedTo(event.target.value)}
+                      placeholder={t('reviewAssignedToPlaceholder')}
+                      disabled={savingStatus !== null}
+                    />
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('reviewFieldHandoffState')}</span>
+                    <select
+                      className="synergi-select"
+                      value={handoffState}
+                      onChange={(event) => setHandoffState(event.target.value)}
+                      disabled={savingStatus !== null}
+                    >
+                      {(['in_review', 'invite_issued', 'activation_pending', 'workspace_ready', 'closed'] as const).map((state) => (
+                        <option key={state} value={state}>
+                          {t(`reviewHandoffState_${state}`)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -428,6 +592,14 @@ export function PartnerAdmissionsReviewPage() {
                       <div>
                         <strong>{t('reviewDecisionLaunchUrl')}</strong>
                         <p>{decisionPayload.launchUrl || t('reviewValueMissing')}</p>
+                      </div>
+                      <div>
+                        <strong>{t('reviewDecisionReasonLabel')}</strong>
+                        <p>{decisionReason || selectedAdmission.decision_reason || t('reviewValueMissing')}</p>
+                      </div>
+                      <div>
+                        <strong>{t('reviewFieldHandoffState')}</strong>
+                        <p>{handoffState || selectedAdmission.handoff_state || t('reviewValueMissing')}</p>
                       </div>
                     </div>
                   </div>

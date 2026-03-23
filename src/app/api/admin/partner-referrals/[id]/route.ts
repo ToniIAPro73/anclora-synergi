@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { updateAdminPartnerReferralStatus, type PartnerReferralRecord } from '@/lib/partner-workspace-store'
+import {
+  buildRateLimitKey,
+  checkRateLimit,
+  getRequestIp,
+  getRequestUserAgent,
+  recordSynergiAuditEvent,
+} from '@/lib/synergi-security'
 
 const ALLOWED_STATUSES = new Set<PartnerReferralRecord['status']>([
   'submitted',
@@ -15,14 +22,51 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
   let session
   try {
-    session = await requireAdminSession()
+    session = await requireAdminSession('reviewer')
   } catch {
+    await recordSynergiAuditEvent({
+      eventType: 'admin_referral_update_denied',
+      actorType: 'admin',
+      actorIdentifier: 'unknown',
+      endpoint: '/api/admin/partner-referrals/[id]',
+      method: 'PATCH',
+      statusCode: 401,
+      ipAddress,
+      userAgent,
+    })
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
   const { id } = await context.params
+  const rateLimit = checkRateLimit(
+    buildRateLimitKey(['admin-referral-update', session.username, id, ipAddress || 'unknown']),
+    20,
+    60_000
+  )
+
+  if (!rateLimit.allowed) {
+    await recordSynergiAuditEvent({
+      eventType: 'admin_referral_update_rate_limited',
+      actorType: 'admin',
+      actorIdentifier: session.username,
+      actorRole: session.role,
+      endpoint: '/api/admin/partner-referrals/[id]',
+      method: 'PATCH',
+      statusCode: 429,
+      subjectType: 'partner_referral',
+      subjectId: id,
+      ipAddress,
+      userAgent,
+    })
+    return NextResponse.json(
+      { error: 'Too many update attempts. Please try again later.' },
+      { status: 429, headers: { 'retry-after': String(rateLimit.retryAfterSeconds || 60) } }
+    )
+  }
 
   let payload: { status?: string; internalNotes?: string }
   try {
@@ -46,6 +90,21 @@ export async function PATCH(
     if (!referral) {
       return NextResponse.json({ error: 'Partner referral not found.' }, { status: 404 })
     }
+
+    await recordSynergiAuditEvent({
+      eventType: 'admin_referral_updated',
+      actorType: 'admin',
+      actorIdentifier: session.username,
+      actorRole: session.role,
+      endpoint: '/api/admin/partner-referrals/[id]',
+      method: 'PATCH',
+      statusCode: 200,
+      subjectType: 'partner_referral',
+      subjectId: referral.id,
+      ipAddress,
+      userAgent,
+      details: { status: referral.status },
+    })
 
     return NextResponse.json({ ok: true, item: referral })
   } catch {

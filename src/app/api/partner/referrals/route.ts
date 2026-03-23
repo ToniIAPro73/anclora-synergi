@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requirePartnerSession } from '@/lib/partner-auth'
 import { createPartnerReferral, listPartnerReferrals } from '@/lib/partner-workspace-store'
+import {
+  buildRateLimitKey,
+  checkRateLimit,
+  getRequestIp,
+  getRequestUserAgent,
+  recordSynergiAuditEvent,
+} from '@/lib/synergi-security'
 
 const ALLOWED_REFERRAL_KINDS = new Set(['buyer', 'seller', 'investor', 'introducer', 'partner'] as const)
 
@@ -25,6 +32,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
   let session
   try {
     session = await requirePartnerSession()
@@ -53,6 +62,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON payload.' }, { status: 400 })
   }
 
+  const rateLimit = checkRateLimit(
+    buildRateLimitKey(['partner-referral-create', session.partnerAccountId, ipAddress || 'unknown']),
+    20,
+    60_000
+  )
+  if (!rateLimit.allowed) {
+    await recordSynergiAuditEvent({
+      eventType: 'partner_referral_rate_limited',
+      actorType: 'partner',
+      actorIdentifier: session.partnerAccountId,
+      actorRole: 'partner',
+      endpoint: '/api/partner/referrals',
+      method: 'POST',
+      statusCode: 429,
+      ipAddress,
+      userAgent,
+    })
+    return NextResponse.json(
+      { error: 'Too many referral attempts. Please try again later.' },
+      { status: 429, headers: { 'retry-after': String(rateLimit.retryAfterSeconds || 60) } }
+    )
+  }
+
   if (!payload.referralName?.trim()) {
     return NextResponse.json({ error: 'Referral name is required.' }, { status: 400 })
   }
@@ -76,6 +108,20 @@ export async function POST(request: NextRequest) {
     if (!referral) {
       return NextResponse.json({ error: 'Unable to create the referral.' }, { status: 502 })
     }
+
+    await recordSynergiAuditEvent({
+      eventType: 'partner_referral_created',
+      actorType: 'partner',
+      actorIdentifier: session.partnerAccountId,
+      actorRole: 'partner',
+      endpoint: '/api/partner/referrals',
+      method: 'POST',
+      statusCode: 201,
+      subjectType: 'partner_referral',
+      subjectId: referral.id,
+      ipAddress,
+      userAgent,
+    })
 
     return NextResponse.json({ ok: true, referral }, { status: 201 })
   } catch {

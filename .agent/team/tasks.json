@@ -5,28 +5,28 @@
     {
       "id": "SYNERGI-FOUND-001",
       "title": "Baseline SDD and multi-agent governance",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "assigned_to": "Director",
       "dependencies": []
     },
     {
       "id": "SYNERGI-PUBLIC-001",
       "title": "Public portal, admission form and reCAPTCHA flow",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "assigned_to": "Agent A",
       "dependencies": ["SYNERGI-FOUND-001"]
     },
     {
       "id": "SYNERGI-DATA-001",
       "title": "Neon schema and partner admission persistence",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "assigned_to": "Agent C",
       "dependencies": ["SYNERGI-FOUND-001"]
     },
     {
       "id": "SYNERGI-OPS-001",
       "title": "Internal review backoffice protection and state transitions",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "assigned_to": "Agent B",
       "dependencies": ["SYNERGI-DATA-001"]
     },
@@ -61,30 +61,51 @@
     {
       "id": "SYNERGI-WORKSPACE-005",
       "title": "Workspace v3 product and operational UX for internal referrals and asset pack request management",
-      "status": "PENDING",
+      "status": "DONE",
       "assigned_to": "Agent A",
       "dependencies": ["SYNERGI-WORKSPACE-004"]
     },
     {
       "id": "SYNERGI-WORKSPACE-006",
       "title": "Workspace v3 backend and Neon model for internal referral management, asset request operations and asset delivery",
-      "status": "PENDING",
+      "status": "DONE",
       "assigned_to": "Agent C",
       "dependencies": ["SYNERGI-WORKSPACE-004", "SYNERGI-WORKSPACE-005"]
     },
     {
       "id": "SYNERGI-WORKSPACE-007",
       "title": "Workspace v3 protected operations, asset fulfillment flow and QA hardening",
-      "status": "PENDING",
+      "status": "DONE",
       "assigned_to": "Agent D",
       "dependencies": ["SYNERGI-WORKSPACE-005", "SYNERGI-WORKSPACE-006", "SYNERGI-OPS-001"]
     },
     {
       "id": "SYNERGI-QA-001",
       "title": "End-to-end hardening, QA and deployment validation",
-      "status": "PENDING",
+      "status": "DONE",
       "assigned_to": "Agent D",
       "dependencies": ["SYNERGI-WORKSPACE-007"]
+    },
+    {
+      "id": "SYNERGI-SEC-001",
+      "title": "Security, operations hardening and release guardrails",
+      "status": "DONE",
+      "assigned_to": "Agent D",
+      "dependencies": ["SYNERGI-OPS-001", "SYNERGI-WORKSPACE-004"]
+    },
+    {
+      "id": "SYNERGI-ADM-002",
+      "title": "Admissions lifecycle, backoffice productization and decision ops",
+      "status": "DONE",
+      "assigned_to": "Agent B",
+      "dependencies": ["SYNERGI-SEC-001", "SYNERGI-OPS-001"]
+    },
+    {
+      "id": "SYNERGI-WORKSPACE-008",
+      "title": "Workspace v4 and reporting with 360 partner view",
+      "status": "DONE",
+      "assigned_to": "Agent A",
+      "dependencies": ["SYNERGI-ADM-002", "SYNERGI-WORKSPACE-007"]
     }
   ]
 }

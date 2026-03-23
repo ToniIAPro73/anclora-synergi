@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clearAdminSessionCookie, createAdminSessionCookie, validateAdminCredentials } from '@/lib/admin-auth'
+import {
+  clearAdminSessionCookie,
+  createAdminSessionCookie,
+  getAuthenticatedAdmin,
+  resolveAdminCredentials,
+} from '@/lib/admin-auth'
+import {
+  buildRateLimitKey,
+  checkRateLimit,
+  getRequestIp,
+  getRequestUserAgent,
+  recordSynergiAuditEvent,
+} from '@/lib/synergi-security'
 
 export async function POST(request: NextRequest) {
   let payload: { username?: string; password?: string }
@@ -12,13 +24,55 @@ export async function POST(request: NextRequest) {
 
   const username = payload.username?.trim() || ''
   const password = payload.password?.trim() || ''
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
+  const rateLimit = checkRateLimit(buildRateLimitKey(['admin-login', username || 'unknown', ipAddress || 'unknown']), 8, 60_000)
+  if (!rateLimit.allowed) {
+    await recordSynergiAuditEvent({
+      eventType: 'admin_login_rate_limited',
+      actorType: 'admin',
+      actorIdentifier: username || 'unknown',
+      endpoint: '/api/admin/session',
+      method: 'POST',
+      statusCode: 429,
+      ipAddress,
+      userAgent,
+      details: { username },
+    })
+    return NextResponse.json(
+      { error: 'Too many login attempts. Please try again later.' },
+      { status: 429, headers: { 'retry-after': String(rateLimit.retryAfterSeconds || 60) } }
+    )
+  }
 
   try {
-    const valid = validateAdminCredentials(username, password)
-    if (!valid) {
+    const account = resolveAdminCredentials(username, password)
+    if (!account) {
+      await recordSynergiAuditEvent({
+        eventType: 'admin_login_failed',
+        actorType: 'admin',
+        actorIdentifier: username || 'unknown',
+        endpoint: '/api/admin/session',
+        method: 'POST',
+        statusCode: 401,
+        ipAddress,
+        userAgent,
+      })
       return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 })
     }
-    await createAdminSessionCookie(username)
+
+    await createAdminSessionCookie(account.username, account.role)
+    await recordSynergiAuditEvent({
+      eventType: 'admin_login_success',
+      actorType: 'admin',
+      actorIdentifier: account.username,
+      actorRole: account.role,
+      endpoint: '/api/admin/session',
+      method: 'POST',
+      statusCode: 200,
+      ipAddress,
+      userAgent,
+    })
     return NextResponse.json({ ok: true })
   } catch (error) {
     return NextResponse.json(
@@ -29,6 +83,16 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE() {
+  const session = await getAuthenticatedAdmin().catch(() => null)
   await clearAdminSessionCookie()
+  await recordSynergiAuditEvent({
+    eventType: 'admin_session_ended',
+    actorType: 'admin',
+    actorIdentifier: session?.username || 'unknown',
+    actorRole: session?.role,
+    endpoint: '/api/admin/session',
+    method: 'DELETE',
+    statusCode: 200,
+  })
   return NextResponse.json({ ok: true })
 }

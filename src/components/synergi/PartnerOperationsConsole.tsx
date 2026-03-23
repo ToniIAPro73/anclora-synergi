@@ -49,6 +49,7 @@ function toList(value: string[] | string | null | undefined) {
 export function PartnerOperationsConsole() {
   const { language, t } = useI18n()
   const [mode, setMode] = useState<ConsoleMode>('referrals')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const [referrals, setReferrals] = useState<AdminPartnerReferralRecord[]>([])
   const [referralFilter, setReferralFilter] = useState<(typeof REFERRAL_STATUS_FILTERS)[number]>('all')
@@ -77,6 +78,49 @@ export function PartnerOperationsConsole() {
 
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const visibleReferrals = useMemo(() => {
+    const needle = searchQuery.trim().toLowerCase()
+    if (!needle) return referrals
+
+    return referrals.filter((referral) =>
+      [
+        referral.referral_name,
+        referral.referral_company,
+        referral.referral_email,
+        referral.referral_phone,
+        referral.partner_full_name,
+        referral.partner_company_name,
+        referral.workspace_display_name,
+        referral.referral_notes,
+        referral.internal_notes,
+        referral.status,
+      ]
+        .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+        .some((value) => value.toLowerCase().includes(needle))
+    )
+  }, [referrals, searchQuery])
+
+  const visibleAssetPackRequests = useMemo(() => {
+    const needle = searchQuery.trim().toLowerCase()
+    if (!needle) return assetPackRequests
+
+    return assetPackRequests.filter((request) =>
+      [
+        request.title,
+        request.request_notes,
+        request.partner_full_name,
+        request.partner_company_name,
+        request.workspace_display_name,
+        request.internal_notes,
+        request.status,
+        request.target_region,
+        request.needed_by_label,
+      ]
+        .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+        .some((value) => value.toLowerCase().includes(needle))
+    )
+  }, [assetPackRequests, searchQuery])
 
   async function loadReferrals(nextFilter = referralFilter, showRefreshState = false) {
     if (showRefreshState) setReferralsRefreshing(true)
@@ -145,13 +189,13 @@ export function PartnerOperationsConsole() {
   }, [assetPackFilter])
 
   const selectedReferral = useMemo(
-    () => referrals.find((item) => item.id === selectedReferralId) ?? null,
-    [referrals, selectedReferralId]
+    () => visibleReferrals.find((item) => item.id === selectedReferralId) ?? visibleReferrals[0] ?? null,
+    [visibleReferrals, selectedReferralId]
   )
 
   const selectedAssetPack = useMemo(
-    () => assetPackRequests.find((item) => item.id === selectedAssetPackId) ?? null,
-    [assetPackRequests, selectedAssetPackId]
+    () => visibleAssetPackRequests.find((item) => item.id === selectedAssetPackId) ?? visibleAssetPackRequests[0] ?? null,
+    [visibleAssetPackRequests, selectedAssetPackId]
   )
 
   useEffect(() => {
@@ -174,7 +218,7 @@ export function PartnerOperationsConsole() {
   }, [selectedAssetPack])
 
   const referralSummary = useMemo(() => {
-    return referrals.reduce(
+    return visibleReferrals.reduce(
       (acc, item) => {
         acc.total += 1
         if (item.status === 'submitted' || item.status === 'reviewing') acc.open += 1
@@ -183,10 +227,10 @@ export function PartnerOperationsConsole() {
       },
       { total: 0, open: 0, resolved: 0 }
     )
-  }, [referrals])
+  }, [visibleReferrals])
 
   const assetPackSummary = useMemo(() => {
-    return assetPackRequests.reduce(
+    return visibleAssetPackRequests.reduce(
       (acc, item) => {
         acc.total += 1
         if (item.status === 'submitted' || item.status === 'reviewing') acc.open += 1
@@ -195,7 +239,7 @@ export function PartnerOperationsConsole() {
       },
       { total: 0, open: 0, resolved: 0 }
     )
-  }, [assetPackRequests])
+  }, [visibleAssetPackRequests])
 
   async function handleReferralUpdate(nextStatus: PartnerReferralRecord['status']) {
     if (!selectedReferral) return
@@ -324,6 +368,15 @@ export function PartnerOperationsConsole() {
       </div>
 
       <div className="synergi-review-toolbar synergi-ops-toolbar">
+        <div className="synergi-review-search synergi-ops-search">
+          <input
+            className="synergi-input synergi-review-search-input"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder={t('opsSearchPlaceholder')}
+          />
+        </div>
+
         <div className="synergi-review-filters">
           {(['referrals', 'asset-packs'] as const).map((item) => (
             <button
@@ -374,11 +427,11 @@ export function PartnerOperationsConsole() {
 
             {referralsLoading ? (
               <div className="synergi-review-empty">{t('opsLoading')}</div>
-            ) : referrals.length === 0 ? (
+            ) : visibleReferrals.length === 0 ? (
               <div className="synergi-review-empty">{t('opsEmpty')}</div>
             ) : (
               <div className="synergi-review-list">
-                {referrals.map((referral) => (
+                {visibleReferrals.map((referral) => (
                   <button
                     key={referral.id}
                     type="button"
@@ -511,11 +564,11 @@ export function PartnerOperationsConsole() {
 
             {assetPacksLoading ? (
               <div className="synergi-review-empty">{t('opsLoading')}</div>
-            ) : assetPackRequests.length === 0 ? (
+            ) : visibleAssetPackRequests.length === 0 ? (
               <div className="synergi-review-empty">{t('opsEmpty')}</div>
             ) : (
               <div className="synergi-review-list">
-                {assetPackRequests.map((request) => (
+                {visibleAssetPackRequests.map((request) => (
                   <button
                     key={request.id}
                     type="button"

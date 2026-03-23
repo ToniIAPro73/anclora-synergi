@@ -9,6 +9,7 @@ export type PartnerProfileType =
 
 export type PartnerModuleKey =
   | 'overview'
+  | 'reporting'
   | 'partner-profile'
   | 'assets-documents'
   | 'referrals'
@@ -144,6 +145,55 @@ export type PartnerActivityEventRecord = {
   created_at: string
 }
 
+export type PartnerWorkspaceReportingRecord = {
+  partner_account_id: string
+  partner_name: string
+  company_name: string | null
+  workspace_display_name: string
+  account_status: PartnerAccountRecord['account_status']
+  workspace_status: PartnerWorkspaceRecord['workspace_status']
+  profile_type: PartnerProfileType
+  collaboration_scope: string
+  headline: string | null
+  profile_completeness: number
+  module_order: PartnerModuleKey[]
+  metrics: {
+    assets_total: number
+    assets_reviewed: number
+    total_downloads: number
+    referrals_total: number
+    referrals_open: number
+    referrals_closed: number
+    asset_packs_total: number
+    asset_packs_open: number
+    asset_packs_fulfilled: number
+    opportunities_total: number
+    opportunities_active: number
+    activity_total: number
+  }
+  highlights: PartnerActivityEventRecord[]
+  notifications: PartnerWorkspaceNotificationRecord[]
+  last_activity_at: string | null
+  focus_label: string
+}
+
+export type PartnerWorkspaceNotificationKind =
+  | 'profile-incomplete'
+  | 'referrals-open'
+  | 'asset-packs-open'
+  | 'opportunities-active'
+  | 'asset-health'
+  | 'activity-recent'
+  | 'workspace-ready'
+
+export type PartnerWorkspaceNotificationRecord = {
+  id: string
+  kind: PartnerWorkspaceNotificationKind
+  severity: 'info' | 'success' | 'warning'
+  count: number | null
+  created_at: string
+}
+
 type WorkspaceBundle = {
   profile: PartnerProfileRecord
   assets: PartnerAssetRecord[]
@@ -152,7 +202,10 @@ type WorkspaceBundle = {
   opportunities: PartnerOpportunityRecord[]
   activity: PartnerActivityEventRecord[]
   moduleOrder: PartnerModuleKey[]
+  reporting: PartnerWorkspaceReportingRecord
 }
+
+type WorkspaceBundleInput = Omit<WorkspaceBundle, 'reporting'>
 
 declare global {
   var __ancloraSynergiPartnerWorkspaceSchemaReady: Promise<void> | undefined
@@ -177,13 +230,160 @@ function inferProfileType(account: PartnerAccountRecord): PartnerProfileType {
 function getDefaultModuleOrder(profileType: PartnerProfileType): PartnerModuleKey[] {
   switch (profileType) {
     case 'referral-partner':
-      return ['overview', 'referrals', 'opportunities', 'activity', 'partner-profile', 'assets-documents']
+      return ['overview', 'reporting', 'referrals', 'opportunities', 'activity', 'partner-profile', 'assets-documents']
     case 'market-intelligence':
-      return ['overview', 'assets-documents', 'referrals', 'activity', 'partner-profile', 'opportunities']
+      return ['overview', 'reporting', 'assets-documents', 'referrals', 'activity', 'partner-profile', 'opportunities']
     case 'project-collaboration':
-      return ['overview', 'opportunities', 'referrals', 'assets-documents', 'activity', 'partner-profile']
+      return ['overview', 'reporting', 'opportunities', 'referrals', 'assets-documents', 'activity', 'partner-profile']
     default:
-      return ['overview', 'partner-profile', 'assets-documents', 'referrals', 'opportunities', 'activity']
+      return ['overview', 'reporting', 'partner-profile', 'assets-documents', 'referrals', 'opportunities', 'activity']
+  }
+}
+
+function calculateProfileCompleteness(profile: PartnerProfileRecord) {
+  const checks = [
+    profile.headline,
+    profile.service_tags.length > 0,
+    profile.primary_regions.length > 0,
+    profile.languages.length > 0,
+    profile.website_url,
+    profile.linkedin_url,
+    profile.instagram_url,
+  ]
+
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100)
+}
+
+function summarizeWorkspaceFocus(
+  profileType: PartnerProfileType,
+  metrics: PartnerWorkspaceReportingRecord['metrics']
+) {
+  if (metrics.referrals_open > 0) return 'Follow up open referrals'
+  if (metrics.asset_packs_open > 0) return 'Prepare or resolve asset packs'
+  if (metrics.opportunities_active > 0) return 'Review active opportunities'
+
+  switch (profileType) {
+    case 'referral-partner':
+      return 'Keep referrals and introductions flowing'
+    case 'market-intelligence':
+      return 'Refresh reports and market materials'
+    case 'project-collaboration':
+      return 'Align assets and delivery milestones'
+    default:
+      return 'Maintain partner profile and curated assets'
+  }
+}
+
+function buildWorkspaceNotifications(
+  profile: PartnerProfileRecord,
+  workspace: PartnerWorkspaceRecord,
+  metrics: PartnerWorkspaceReportingRecord['metrics'],
+  highlights: PartnerActivityEventRecord[]
+): PartnerWorkspaceNotificationRecord[] {
+  const notifications: PartnerWorkspaceNotificationRecord[] = []
+  const latestActivity = highlights[0]
+  const now = new Date().toISOString()
+
+  if (profile.profile_visibility === 'workspace' && metrics.assets_total > 0 && metrics.assets_reviewed < metrics.assets_total) {
+    notifications.push({
+      id: `${profile.partner_account_id}-asset-health`,
+      kind: 'asset-health',
+      severity: 'info',
+      count: metrics.assets_total - metrics.assets_reviewed,
+      created_at: latestActivity?.created_at || now,
+    })
+  }
+
+  if (metrics.referrals_open > 0) {
+    notifications.push({
+      id: `${profile.partner_account_id}-referrals-open`,
+      kind: 'referrals-open',
+      severity: 'warning',
+      count: metrics.referrals_open,
+      created_at: latestActivity?.created_at || now,
+    })
+  }
+
+  if (metrics.asset_packs_open > 0) {
+    notifications.push({
+      id: `${profile.partner_account_id}-asset-packs-open`,
+      kind: 'asset-packs-open',
+      severity: 'warning',
+      count: metrics.asset_packs_open,
+      created_at: latestActivity?.created_at || now,
+    })
+  }
+
+  if (metrics.opportunities_active > 0) {
+    notifications.push({
+      id: `${profile.partner_account_id}-opportunities-active`,
+      kind: 'opportunities-active',
+      severity: 'info',
+      count: metrics.opportunities_active,
+      created_at: latestActivity?.created_at || now,
+    })
+  }
+
+  if (latestActivity) {
+    notifications.push({
+      id: `${profile.partner_account_id}-activity-recent`,
+      kind: 'activity-recent',
+      severity: 'success',
+      count: null,
+      created_at: latestActivity.created_at,
+    })
+  }
+
+  if (notifications.length === 0) {
+    notifications.push({
+      id: `${workspace.partner_account_id}-workspace-ready`,
+      kind: 'workspace-ready',
+      severity: 'success',
+      count: metrics.activity_total,
+      created_at: now,
+    })
+  }
+
+  return notifications.slice(0, 5)
+}
+
+export function buildPartnerWorkspaceReporting(
+  account: PartnerAccountRecord,
+  workspace: PartnerWorkspaceRecord,
+  bundle: WorkspaceBundleInput
+): PartnerWorkspaceReportingRecord {
+  const metrics = {
+    assets_total: bundle.assets.length,
+    assets_reviewed: bundle.assets.filter((asset) => asset.review_status === 'reviewed').length,
+    total_downloads: bundle.assets.reduce((sum, asset) => sum + asset.download_count, 0),
+    referrals_total: bundle.referrals.length,
+    referrals_open: bundle.referrals.filter((referral) => ['submitted', 'reviewing'].includes(referral.status)).length,
+    referrals_closed: bundle.referrals.filter((referral) => ['closed', 'declined'].includes(referral.status)).length,
+    asset_packs_total: bundle.assetPackRequests.length,
+    asset_packs_open: bundle.assetPackRequests.filter((request) => ['submitted', 'reviewing'].includes(request.status)).length,
+    asset_packs_fulfilled: bundle.assetPackRequests.filter((request) => request.status === 'fulfilled').length,
+    opportunities_total: bundle.opportunities.length,
+    opportunities_active: bundle.opportunities.filter((opportunity) => ['active', 'watching'].includes(opportunity.status)).length,
+    activity_total: bundle.activity.length,
+  }
+
+  return {
+    partner_account_id: account.id,
+    partner_name: account.full_name,
+    company_name: account.company_name,
+    workspace_display_name: workspace.display_name,
+    account_status: account.account_status,
+    workspace_status: workspace.workspace_status,
+    profile_type: bundle.profile.partner_profile_type,
+    collaboration_scope: bundle.profile.collaboration_scope,
+    headline: bundle.profile.headline,
+    profile_completeness: calculateProfileCompleteness(bundle.profile),
+    module_order: bundle.moduleOrder,
+    metrics,
+    highlights: bundle.activity.slice(0, 4),
+    notifications: buildWorkspaceNotifications(bundle.profile, workspace, metrics, bundle.activity.slice(0, 4)),
+    last_activity_at: bundle.activity[0]?.created_at || null,
+    focus_label: summarizeWorkspaceFocus(bundle.profile.partner_profile_type, metrics),
   }
 }
 
@@ -632,7 +832,7 @@ export async function getOrCreatePartnerWorkspaceBundle(
     LIMIT 8;
   `
 
-  return {
+  const bundle = {
     profile,
     assets: assetsRows,
     referrals: referralsRows,
@@ -640,6 +840,11 @@ export async function getOrCreatePartnerWorkspaceBundle(
     opportunities: opportunitiesRows,
     activity: activityRows,
     moduleOrder: getDefaultModuleOrder(profile.partner_profile_type),
+  }
+
+  return {
+    ...bundle,
+    reporting: buildPartnerWorkspaceReporting(account, workspace, bundle),
   }
 }
 

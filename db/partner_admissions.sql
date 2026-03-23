@@ -179,3 +179,29 @@ CREATE INDEX IF NOT EXISTS idx_partner_asset_pack_requests_account_created_at
 
 CREATE INDEX IF NOT EXISTS idx_partner_asset_pack_requests_status
   ON partner_asset_pack_requests (status);
+
+CREATE TABLE IF NOT EXISTS synergi_audit_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_type TEXT NOT NULL,
+  actor_type TEXT NOT NULL,
+  actor_identifier TEXT,
+  actor_role TEXT,
+  endpoint TEXT,
+  method TEXT,
+  status_code INTEGER,
+  subject_type TEXT,
+  subject_id TEXT,
+  ip_address TEXT,
+  user_agent TEXT,
+  details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_created_at
+  ON synergi_audit_events (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_event_type
+  ON synergi_audit_events (event_type);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_actor_identifier
+  ON synergi_audit_events (actor_identifier);

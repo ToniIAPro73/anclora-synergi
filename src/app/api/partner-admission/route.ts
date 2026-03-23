@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPartnerAdmission } from '@/lib/partner-admissions-store'
+import {
+  buildRateLimitKey,
+  checkRateLimit,
+  getRequestUserAgent,
+  recordSynergiAuditEvent,
+} from '@/lib/synergi-security'
 
 type PartnerAdmissionPayload = {
   name?: string
@@ -54,6 +60,27 @@ export async function POST(request: NextRequest) {
   const speciality = payload.speciality?.trim() || ''
   const captchaToken = payload.captchaToken?.trim() || ''
   const submissionLanguage = payload.submissionLanguage?.trim() || 'es'
+  const ipAddress = getClientIp(request)
+  const userAgent = getRequestUserAgent(request)
+  const rateLimit = checkRateLimit(buildRateLimitKey(['partner-admission', email || ipAddress || 'unknown']), 4, 15 * 60_000)
+
+  if (!rateLimit.allowed) {
+    await recordSynergiAuditEvent({
+      eventType: 'partner_admission_rate_limited',
+      actorType: 'system',
+      actorIdentifier: email || ipAddress || 'unknown',
+      endpoint: '/api/partner-admission',
+      method: 'POST',
+      statusCode: 429,
+      ipAddress,
+      userAgent,
+      details: { submissionLanguage },
+    })
+    return NextResponse.json(
+      { error: 'Too many submission attempts. Please try again later.' },
+      { status: 429, headers: { 'retry-after': String(rateLimit.retryAfterSeconds || 900) } }
+    )
+  }
 
   if (!name || !email || !vision || !captchaToken) {
     return NextResponse.json(
@@ -86,6 +113,17 @@ export async function POST(request: NextRequest) {
 
     verification = (await response.json()) as RecaptchaVerificationResponse
   } catch {
+    await recordSynergiAuditEvent({
+      eventType: 'partner_admission_captcha_failed',
+      actorType: 'system',
+      actorIdentifier: email || ipAddress || 'unknown',
+      endpoint: '/api/partner-admission',
+      method: 'POST',
+      statusCode: 502,
+      ipAddress,
+      userAgent,
+      details: { reason: 'verification_unavailable' },
+    })
     return NextResponse.json(
       { error: 'Unable to verify reCAPTCHA with Google.' },
       { status: 502 }
@@ -93,6 +131,17 @@ export async function POST(request: NextRequest) {
   }
 
   if (!verification.success) {
+    await recordSynergiAuditEvent({
+      eventType: 'partner_admission_captcha_failed',
+      actorType: 'system',
+      actorIdentifier: email || ipAddress || 'unknown',
+      endpoint: '/api/partner-admission',
+      method: 'POST',
+      statusCode: 400,
+      ipAddress,
+      userAgent,
+      details: { errors: verification['error-codes'] || [] },
+    })
     return NextResponse.json(
       {
         error: 'reCAPTCHA verification failed.',
@@ -103,6 +152,17 @@ export async function POST(request: NextRequest) {
   }
 
   if (payload.privacyAccepted !== true) {
+    await recordSynergiAuditEvent({
+      eventType: 'partner_admission_denied',
+      actorType: 'system',
+      actorIdentifier: email || ipAddress || 'unknown',
+      endpoint: '/api/partner-admission',
+      method: 'POST',
+      statusCode: 400,
+      ipAddress,
+      userAgent,
+      details: { reason: 'privacy_not_accepted' },
+    })
     return NextResponse.json(
       { error: 'Privacy policy must be accepted.' },
       { status: 400 }
@@ -131,11 +191,39 @@ export async function POST(request: NextRequest) {
       submissionSource: 'synergi',
     })
   } catch {
+    await recordSynergiAuditEvent({
+      eventType: 'partner_admission_persist_failed',
+      actorType: 'system',
+      actorIdentifier: email || ipAddress || 'unknown',
+      endpoint: '/api/partner-admission',
+      method: 'POST',
+      statusCode: 502,
+      ipAddress,
+      userAgent,
+      details: { submissionLanguage },
+    })
     return NextResponse.json(
       { error: 'Unable to persist partner admission in Neon.' },
       { status: 502 }
     )
   }
+
+  await recordSynergiAuditEvent({
+    eventType: 'partner_admission_submitted',
+    actorType: 'system',
+    actorIdentifier: email || ipAddress || 'unknown',
+    endpoint: '/api/partner-admission',
+    method: 'POST',
+    statusCode: 200,
+    ipAddress,
+    userAgent,
+    subjectType: 'partner_admission',
+    subjectId: admission.id,
+    details: {
+      submissionLanguage,
+      captchaHostname: verification.hostname || null,
+    },
+  })
 
   return NextResponse.json({
     ok: true,

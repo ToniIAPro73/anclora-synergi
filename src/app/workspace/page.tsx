@@ -22,6 +22,7 @@ export default async function WorkspacePage() {
       welcomeNote={workspace.welcome_note}
       accountStatus={account.account_status}
       profile={bundle.profile}
+      reporting={bundle.reporting}
       moduleOrder={bundle.moduleOrder}
       assets={bundle.assets}
       referrals={bundle.referrals}
