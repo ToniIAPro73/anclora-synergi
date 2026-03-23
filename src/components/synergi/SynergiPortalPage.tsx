@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, BookOpenText, Download, KeyRound, ShieldCheck, Sparkles, UserRoundPlus } from 'lucide-react'
+import { ArrowRight, BookOpenText, KeyRound, ShieldCheck, Sparkles, UserRoundPlus } from 'lucide-react'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 
 declare global {
@@ -257,7 +257,6 @@ export function SynergiPortalPage() {
               </div>
               <div className="synergi-guide-link-meta">
                 <BookOpenText size={18} />
-                <Download size={16} />
               </div>
             </a>
 

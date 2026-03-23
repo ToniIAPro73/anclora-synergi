@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BarChart3, BellRing, BookOpenText, BriefcaseBusiness, Download, FileStack, LayoutGrid, RadioTower, Sparkles, UserRound } from 'lucide-react'
+import { BarChart3, BellRing, BookOpenText, BriefcaseBusiness, FileStack, LayoutGrid, RadioTower, Sparkles, UserRound } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type {
   PartnerActivityEventRecord,
@@ -1341,7 +1341,6 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
               </div>
               <div className="synergi-workspace-guide-icons">
                 <BookOpenText size={18} />
-                <Download size={15} />
               </div>
             </a>
           </aside>
