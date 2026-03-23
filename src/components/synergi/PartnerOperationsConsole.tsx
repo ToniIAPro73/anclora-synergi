@@ -317,6 +317,10 @@ export function PartnerOperationsConsole() {
         body: JSON.stringify({
           status: nextStatus,
           internalNotes: assetPackNotes,
+          deliveryMethod: fulfillmentForm.deliveryMethod,
+          deliveryReference: fulfillmentForm.deliveryReference,
+          deliveryNotes: fulfillmentForm.deliveryNotes,
+          fulfillmentOwner: fulfillmentForm.fulfillmentOwner,
           fulfillmentAsset:
             nextStatus === 'fulfilled' && fulfillmentForm.title.trim() && (fulfillmentForm.assetBody.trim() || fulfillmentForm.assetUrl.trim())
               ? {
@@ -361,7 +365,65 @@ export function PartnerOperationsConsole() {
     }
   }
 
+  async function handleAssetUpdate(nextAction: 'update' | 'retire' | 'publish-version') {
+    if (!selectedAsset) return
+
+    setAssetPublishBusyId(selectedAsset.id)
+    setError(null)
+    setNotice(null)
+
+    try {
+      const response = await fetch(`/api/admin/partner-assets/${selectedAsset.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: nextAction,
+          title: assetForm.title,
+          description: assetForm.description,
+          assetKind: assetForm.assetKind,
+          accessLevel: assetForm.accessLevel,
+          lifecycleStatus: nextAction === 'retire' ? 'archived' : assetForm.lifecycleStatus,
+          versionLabel: assetForm.versionLabel,
+          assetUrl: assetForm.assetUrl,
+          assetBody: assetForm.assetBody,
+          contentFormat: assetForm.contentFormat,
+          retirementReason: assetForm.retirementReason,
+        }),
+      })
+
+      const body = (await response.json().catch(() => null)) as { error?: string; item?: PartnerAssetRecord } | null
+
+      if (!response.ok || !body?.item) {
+        throw new Error(body?.error || t('opsSaveError'))
+      }
+
+      setAssets((current) =>
+        current.map((item) => (item.id === body.item!.id ? body.item! : item))
+      )
+      setNotice(nextAction === 'publish-version' ? t('opsAssetVersionPublished') : t('opsSaved'))
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : t('opsSaveError'))
+    } finally {
+      setAssetPublishBusyId(null)
+    }
+  }
+
   const referralsVisible = mode === 'referrals'
+  const assetPacksVisible = mode === 'asset-packs'
+  const assetsVisible = mode === 'assets'
+  const activeSummary = assetsVisible ? assetSummary : referralsVisible ? referralSummary : assetPackSummary
+  const activeRefresh = assetsVisible ? assetsRefreshing : referralsVisible ? referralsRefreshing : assetPacksRefreshing
+  const activeRefreshLabel = assetsVisible
+    ? assetsRefreshing
+      ? t('opsRefreshing')
+      : t('opsRefresh')
+    : referralsVisible
+      ? referralsRefreshing
+        ? t('opsRefreshing')
+        : t('opsRefresh')
+      : assetPacksRefreshing
+        ? t('opsRefreshing')
+        : t('opsRefresh')
 
   return (
     <section className="synergi-panel synergi-ops-panel">
@@ -374,17 +436,17 @@ export function PartnerOperationsConsole() {
       <div className="synergi-review-summary-grid synergi-ops-summary-grid">
         <article className="synergi-review-summary-card">
           <Sparkles className="synergi-signal-icon" />
-          <strong>{referralsVisible ? referralSummary.total : assetPackSummary.total}</strong>
+          <strong>{activeSummary.total}</strong>
           <span>{t('opsSummaryTotal')}</span>
         </article>
         <article className="synergi-review-summary-card">
           <UserRound className="synergi-signal-icon is-cyan" />
-          <strong>{referralsVisible ? referralSummary.open : assetPackSummary.open}</strong>
+          <strong>{activeSummary.open}</strong>
           <span>{t('opsSummaryOpen')}</span>
         </article>
         <article className="synergi-review-summary-card">
           <SplitSquareVertical className="synergi-signal-icon" />
-          <strong>{referralsVisible ? referralSummary.resolved : assetPackSummary.resolved}</strong>
+          <strong>{activeSummary.resolved}</strong>
           <span>{t('opsSummaryResolved')}</span>
         </article>
       </div>
@@ -400,14 +462,14 @@ export function PartnerOperationsConsole() {
         </div>
 
         <div className="synergi-review-filters">
-          {(['referrals', 'asset-packs'] as const).map((item) => (
+          {(['referrals', 'asset-packs', 'assets'] as const).map((item) => (
             <button
               key={item}
               type="button"
               className={`synergi-review-filter ${mode === item ? 'is-active' : ''}`}
               onClick={() => setMode(item)}
             >
-              {t(item === 'referrals' ? 'opsTab_referrals' : 'opsTab_assetPacks')}
+              {item === 'referrals' ? t('opsTab_referrals') : item === 'asset-packs' ? t('opsTab_assetPacks') : t('opsTab_assets')}
             </button>
           ))}
         </div>
@@ -415,11 +477,13 @@ export function PartnerOperationsConsole() {
         <button
           type="button"
           className="synergi-review-refresh"
-          onClick={() => void (referralsVisible ? loadReferrals(referralFilter, true) : loadAssetPacks(assetPackFilter, true))}
-          disabled={referralsVisible ? referralsRefreshing : assetPacksRefreshing}
+          onClick={() =>
+            void (assetsVisible ? loadAssets(assetFilter, true) : referralsVisible ? loadReferrals(referralFilter, true) : loadAssetPacks(assetPackFilter, true))
+          }
+          disabled={activeRefresh}
         >
           <RefreshCcw size={16} />
-          <span>{referralsVisible ? (referralsRefreshing ? t('opsRefreshing') : t('opsRefresh')) : (assetPacksRefreshing ? t('opsRefreshing') : t('opsRefresh'))}</span>
+          <span>{activeRefreshLabel}</span>
         </button>
       </div>
 
