@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, KeyRound, ShieldCheck, Sparkles, UserRoundPlus } from 'lucide-react'
+import { ArrowRight, BookOpenText, Download, KeyRound, ShieldCheck, Sparkles, UserRoundPlus } from 'lucide-react'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 
 declare global {
@@ -26,6 +26,8 @@ declare global {
     onSynergiRecaptchaVerified?: (token: string) => void
   }
 }
+
+const PARTNER_GUIDE_HREF = '/docs/Gu%C3%ADa_del_Partner.pdf'
 
 export function SynergiPortalPage() {
   const { language, setLanguage, t } = useI18n()
@@ -246,6 +248,18 @@ export function SynergiPortalPage() {
                 <p>{t('admissionStepTwoCopy')}</p>
               </article>
             </div>
+
+            <a href={PARTNER_GUIDE_HREF} download className="synergi-guide-link-card">
+              <div className="synergi-guide-link-copy">
+                <span>{t('partnerGuideEyebrow')}</span>
+                <strong>{t('partnerGuideTitle')}</strong>
+                <p>{t('partnerGuidePublicCopy')}</p>
+              </div>
+              <div className="synergi-guide-link-meta">
+                <BookOpenText size={18} />
+                <Download size={16} />
+              </div>
+            </a>
 
             <form className="synergi-form" onSubmit={handleSubmit}>
               <input

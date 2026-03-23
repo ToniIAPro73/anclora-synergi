@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BarChart3, BellRing, BriefcaseBusiness, FileStack, LayoutGrid, RadioTower, Sparkles, UserRound } from 'lucide-react'
+import { BarChart3, BellRing, BookOpenText, BriefcaseBusiness, Download, FileStack, LayoutGrid, RadioTower, Sparkles, UserRound } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type {
   PartnerActivityEventRecord,
@@ -31,6 +31,8 @@ type WorkspaceProps = {
   opportunities: PartnerOpportunityRecord[]
   activity: PartnerActivityEventRecord[]
 }
+
+const PARTNER_GUIDE_HREF = '/docs/Gu%C3%ADa_del_Partner.pdf'
 
 const MODULE_ICONS: Record<PartnerModuleKey, typeof LayoutGrid> = {
   overview: LayoutGrid,
@@ -1331,6 +1333,17 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
                 {t('workspaceLogout')}
               </button>
             </div>
+            <a href={PARTNER_GUIDE_HREF} download className="synergi-workspace-guide-link">
+              <div>
+                <span>{t('partnerGuideEyebrow')}</span>
+                <strong>{t('partnerGuideWorkspaceTitle')}</strong>
+                <p>{t('partnerGuideWorkspaceCopy')}</p>
+              </div>
+              <div className="synergi-workspace-guide-icons">
+                <BookOpenText size={18} />
+                <Download size={15} />
+              </div>
+            </a>
           </aside>
 
           <section className="synergi-panel synergi-review-detail-panel">
