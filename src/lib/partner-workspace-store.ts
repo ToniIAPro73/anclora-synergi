@@ -316,6 +316,7 @@ export type PartnerWorkspaceAnalyticsRecord = {
     assets_reviewed: number
     assets_current: number
     assets_retired: number
+    assets_versioned: number
     downloads_total: number
     referrals_total: number
     referrals_open: number
