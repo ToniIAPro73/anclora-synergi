@@ -14,6 +14,8 @@ const ALLOWED_STATUSES = new Set<PartnerReferralRecord['status']>([
   'reviewing',
   'qualified',
   'introduced',
+  'negotiating',
+  'won',
   'closed',
   'declined',
 ])

@@ -110,6 +110,35 @@ export type PartnerAdmissionReviewBundle = {
   }>
 }
 
+export type SynergiAdmissionsAnalyticsRecord = {
+  summary: {
+    total: number
+    submitted: number
+    under_review: number
+    accepted: number
+    rejected: number
+  }
+  conversion: {
+    acceptance_rate: number
+    rejection_rate: number
+    activation_rate: number
+  }
+  sourceBreakdown: Array<{
+    submission_source: string
+    total: number
+    accepted: number
+    rejected: number
+  }>
+  languageBreakdown: Array<{
+    submission_language: string
+    total: number
+  }>
+  reviewerBreakdown: Array<{
+    reviewed_by: string
+    total: number
+  }>
+}
+
 declare global {
   var __ancloraSynergiPartnerAdmissionsSchemaReady: Promise<void> | undefined
 }
@@ -657,6 +686,47 @@ export async function issuePartnerInvite(input: {
   }
 }
 
+export type PartnerAdmissionsAnalyticsTimelinePoint = {
+  day: string
+  submissions: number
+  reviewed: number
+  accepted: number
+  rejected: number
+  activated: number
+}
+
+export type PartnerAdmissionsAnalyticsRecord = {
+  generated_at: string
+  funnel: {
+    total_submissions: number
+    submitted: number
+    under_review: number
+    accepted: number
+    rejected: number
+    reviewed: number
+    review_rate: number
+    acceptance_rate: number
+    activation_rate: number
+    active_workspace_rate: number
+    avg_review_hours: number | null
+    avg_activation_hours: number | null
+  }
+  accounts: {
+    invited: number
+    active: number
+    paused: number
+  }
+  workspaces: {
+    invited: number
+    active: number
+    paused: number
+  }
+  sources: Array<{ source: string; count: number }>
+  priorities: Array<{ label: string; count: number }>
+  timeline: PartnerAdmissionsAnalyticsTimelinePoint[]
+  recent: PartnerAdmissionRecord[]
+}
+
 export async function acceptPartnerAdmission(input: {
   admissionId: string
   reviewNotes?: string
@@ -1042,4 +1112,251 @@ export async function getPartnerAdmissionReviewBundle(admissionId: string) {
     decisionHistory,
     auditTrail,
   } satisfies PartnerAdmissionReviewBundle
+}
+
+export async function getSynergiAdmissionsAnalytics() {
+  globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
+  await globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady
+
+  const summaryRows = await sql<{
+    total: string
+    submitted: string
+    under_review: string
+    accepted: string
+    rejected: string
+    active_accounts: string
+  }>`
+    SELECT
+      COUNT(*)::text AS total,
+      COUNT(*) FILTER (WHERE status = 'submitted')::text AS submitted,
+      COUNT(*) FILTER (WHERE status = 'under_review')::text AS under_review,
+      COUNT(*) FILTER (WHERE status = 'accepted')::text AS accepted,
+      COUNT(*) FILTER (WHERE status = 'rejected')::text AS rejected,
+      COUNT(*) FILTER (WHERE partner_account_id IS NOT NULL)::text AS active_accounts
+    FROM partner_admissions;
+  `
+
+  const sourceBreakdown = await sql<{
+    submission_source: string
+    total: string
+    accepted: string
+    rejected: string
+  }>`
+    SELECT
+      submission_source,
+      COUNT(*)::text AS total,
+      COUNT(*) FILTER (WHERE status = 'accepted')::text AS accepted,
+      COUNT(*) FILTER (WHERE status = 'rejected')::text AS rejected
+    FROM partner_admissions
+    GROUP BY submission_source
+    ORDER BY COUNT(*) DESC, submission_source ASC;
+  `
+
+  const languageBreakdown = await sql<{
+    submission_language: string
+    total: string
+  }>`
+    SELECT
+      submission_language,
+      COUNT(*)::text AS total
+    FROM partner_admissions
+    GROUP BY submission_language
+    ORDER BY COUNT(*) DESC, submission_language ASC;
+  `
+
+  const reviewerBreakdown = await sql<{
+    reviewed_by: string | null
+    total: string
+  }>`
+    SELECT
+      reviewed_by,
+      COUNT(*)::text AS total
+    FROM partner_admissions
+    WHERE reviewed_by IS NOT NULL
+    GROUP BY reviewed_by
+    ORDER BY COUNT(*) DESC, reviewed_by ASC
+    LIMIT 8;
+  `
+
+  const summary = summaryRows[0]
+  const total = Number(summary?.total || '0')
+  const accepted = Number(summary?.accepted || '0')
+  const rejected = Number(summary?.rejected || '0')
+  const activeAccounts = Number(summary?.active_accounts || '0')
+
+  return {
+    summary: {
+      total,
+      submitted: Number(summary?.submitted || '0'),
+      under_review: Number(summary?.under_review || '0'),
+      accepted,
+      rejected,
+    },
+    conversion: {
+      acceptance_rate: total > 0 ? Number(((accepted / total) * 100).toFixed(1)) : 0,
+      rejection_rate: total > 0 ? Number(((rejected / total) * 100).toFixed(1)) : 0,
+      activation_rate: accepted > 0 ? Number(((activeAccounts / accepted) * 100).toFixed(1)) : 0,
+    },
+    sourceBreakdown: sourceBreakdown.map((row) => ({
+      submission_source: row.submission_source,
+      total: Number(row.total),
+      accepted: Number(row.accepted),
+      rejected: Number(row.rejected),
+    })),
+    languageBreakdown: languageBreakdown.map((row) => ({
+      submission_language: row.submission_language,
+      total: Number(row.total),
+    })),
+    reviewerBreakdown: reviewerBreakdown.map((row) => ({
+      reviewed_by: row.reviewed_by || 'system',
+      total: Number(row.total),
+    })),
+  } satisfies SynergiAdmissionsAnalyticsRecord
+}
+
+export async function getPartnerAdmissionsAnalytics(input?: {
+  days?: number
+  recentLimit?: number
+}): Promise<PartnerAdmissionsAnalyticsRecord> {
+  globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady ??= ensurePartnerAdmissionsSchema()
+  await globalThis.__ancloraSynergiPartnerAdmissionsSchemaReady
+
+  const days = Math.max(7, Math.min(input?.days || 30, 90))
+  const recentLimit = Math.max(1, Math.min(input?.recentLimit || 10, 50))
+
+  const funnelRows = await sql<{
+    total_submissions: string
+    submitted: string
+    under_review: string
+    accepted: string
+    rejected: string
+    reviewed: string
+    avg_review_hours: string | null
+    avg_activation_hours: string | null
+  }>`
+    SELECT
+      COUNT(*)::text AS total_submissions,
+      COUNT(*) FILTER (WHERE status = 'submitted')::text AS submitted,
+      COUNT(*) FILTER (WHERE status = 'under_review')::text AS under_review,
+      COUNT(*) FILTER (WHERE status = 'accepted')::text AS accepted,
+      COUNT(*) FILTER (WHERE status = 'rejected')::text AS rejected,
+      COUNT(*) FILTER (WHERE reviewed_at IS NOT NULL)::text AS reviewed,
+      AVG(EXTRACT(EPOCH FROM (reviewed_at - created_at)) / 3600.0) FILTER (WHERE reviewed_at IS NOT NULL)::text AS avg_review_hours,
+      AVG(EXTRACT(EPOCH FROM (a.activated_at - pa.reviewed_at)) / 3600.0) FILTER (
+        WHERE pa.status = 'accepted'
+          AND a.activated_at IS NOT NULL
+          AND pa.reviewed_at IS NOT NULL
+      )::text AS avg_activation_hours
+    FROM partner_admissions pa
+    LEFT JOIN partner_accounts a ON a.admission_id = pa.id;
+  `
+
+  const accountRows = await sql<{ account_status: string; count: string }>`
+    SELECT account_status, COUNT(*)::text AS count
+    FROM partner_accounts
+    GROUP BY account_status;
+  `
+
+  const workspaceRows = await sql<{ workspace_status: string; count: string }>`
+    SELECT workspace_status, COUNT(*)::text AS count
+    FROM partner_workspaces
+    GROUP BY workspace_status;
+  `
+
+  const sourceRows = await sql<{ submission_source: string; count: string }>`
+    SELECT submission_source, COUNT(*)::text AS count
+    FROM partner_admissions
+    GROUP BY submission_source
+    ORDER BY COUNT(*) DESC, submission_source ASC
+    LIMIT 8;
+  `
+
+  const priorityRows = await sql<{ priority_label: string | null; count: string }>`
+    SELECT COALESCE(priority_label, 'unassigned') AS priority_label, COUNT(*)::text AS count
+    FROM partner_admissions
+    GROUP BY COALESCE(priority_label, 'unassigned')
+    ORDER BY COUNT(*) DESC, priority_label ASC
+    LIMIT 8;
+  `
+
+  const timelineRows = await sql<PartnerAdmissionsAnalyticsTimelinePoint>`
+    WITH series AS (
+      SELECT generate_series(
+        date_trunc('day', NOW()) - (${days - 1} * INTERVAL '1 day'),
+        date_trunc('day', NOW()),
+        INTERVAL '1 day'
+      )::date AS day
+    )
+    SELECT
+      series.day::text AS day,
+      COALESCE((SELECT COUNT(*)::int FROM partner_admissions pa WHERE pa.created_at::date = series.day), 0) AS submissions,
+      COALESCE((SELECT COUNT(*)::int FROM partner_admissions pa WHERE pa.reviewed_at::date = series.day), 0) AS reviewed,
+      COALESCE((SELECT COUNT(*)::int FROM partner_admissions pa WHERE pa.status = 'accepted' AND pa.updated_at::date = series.day), 0) AS accepted,
+      COALESCE((SELECT COUNT(*)::int FROM partner_admissions pa WHERE pa.status = 'rejected' AND pa.updated_at::date = series.day), 0) AS rejected,
+      COALESCE((SELECT COUNT(*)::int FROM partner_accounts a WHERE a.activated_at::date = series.day), 0) AS activated
+    FROM series
+    ORDER BY series.day ASC;
+  `
+
+  const funnel = funnelRows[0] || {
+    total_submissions: '0',
+    submitted: '0',
+    under_review: '0',
+    accepted: '0',
+    rejected: '0',
+    reviewed: '0',
+    avg_review_hours: null,
+    avg_activation_hours: null,
+  }
+
+  const totalSubmissions = Number(funnel.total_submissions || '0')
+  const reviewed = Number(funnel.reviewed || '0')
+  const accepted = Number(funnel.accepted || '0')
+  const rejected = Number(funnel.rejected || '0')
+  const submitted = Number(funnel.submitted || '0')
+  const underReview = Number(funnel.under_review || '0')
+  const activeAccounts = Number(accountRows.find((item) => item.account_status === 'active')?.count || '0')
+  const activeWorkspaces = Number(workspaceRows.find((item) => item.workspace_status === 'active')?.count || '0')
+  const acceptedAccountCount = accepted
+
+  const recent = await listPartnerAdmissions({ limit: recentLimit })
+
+  return {
+    generated_at: new Date().toISOString(),
+    funnel: {
+      total_submissions: totalSubmissions,
+      submitted,
+      under_review: underReview,
+      accepted,
+      rejected,
+      reviewed,
+      review_rate: totalSubmissions ? Number((reviewed / totalSubmissions).toFixed(3)) : 0,
+      acceptance_rate: totalSubmissions ? Number((accepted / totalSubmissions).toFixed(3)) : 0,
+      activation_rate: acceptedAccountCount ? Number((activeAccounts / acceptedAccountCount).toFixed(3)) : 0,
+      active_workspace_rate: acceptedAccountCount ? Number((activeWorkspaces / acceptedAccountCount).toFixed(3)) : 0,
+      avg_review_hours: funnel.avg_review_hours ? Number(Number(funnel.avg_review_hours).toFixed(2)) : null,
+      avg_activation_hours: funnel.avg_activation_hours ? Number(Number(funnel.avg_activation_hours).toFixed(2)) : null,
+    },
+    accounts: {
+      invited: Number(accountRows.find((item) => item.account_status === 'invited')?.count || '0'),
+      active: activeAccounts,
+      paused: Number(accountRows.find((item) => item.account_status === 'paused')?.count || '0'),
+    },
+    workspaces: {
+      invited: Number(workspaceRows.find((item) => item.workspace_status === 'invited')?.count || '0'),
+      active: activeWorkspaces,
+      paused: Number(workspaceRows.find((item) => item.workspace_status === 'paused')?.count || '0'),
+    },
+    sources: sourceRows.map((item) => ({ source: item.submission_source, count: Number(item.count) })),
+    priorities: priorityRows.map((item) => ({ label: item.priority_label || 'unassigned', count: Number(item.count) })),
+    timeline: timelineRows.map((item) => ({
+      day: item.day,
+      submissions: Number(item.submissions),
+      reviewed: Number(item.reviewed),
+      accepted: Number(item.accepted),
+      rejected: Number(item.rejected),
+      activated: Number(item.activated),
+    })),
+    recent,
+  }
 }

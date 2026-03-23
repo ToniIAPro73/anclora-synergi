@@ -70,6 +70,15 @@ export async function PATCH(
     status?: string
     internalNotes?: string
     deliveredAssetId?: string
+    fulfillmentAsset?: {
+      title?: string
+      description?: string
+      assetKind?: 'playbook' | 'document' | 'brief'
+      accessLevel?: 'private' | 'shared'
+      assetUrl?: string
+      assetBody?: string
+      contentFormat?: 'markdown' | 'text'
+    }
   }
 
   try {
@@ -89,6 +98,18 @@ export async function PATCH(
       internalNotes: payload.internalNotes,
       reviewedBy: session.username,
       deliveredAssetId: payload.deliveredAssetId,
+      fulfillmentAsset:
+        payload.fulfillmentAsset?.title?.trim()
+          ? {
+              title: payload.fulfillmentAsset.title,
+              description: payload.fulfillmentAsset.description,
+              assetKind: payload.fulfillmentAsset.assetKind,
+              accessLevel: payload.fulfillmentAsset.accessLevel,
+              assetUrl: payload.fulfillmentAsset.assetUrl,
+              assetBody: payload.fulfillmentAsset.assetBody,
+              contentFormat: payload.fulfillmentAsset.contentFormat,
+            }
+          : undefined,
     })
 
     if (!result?.request) {
@@ -107,7 +128,11 @@ export async function PATCH(
       subjectId: result.request.id,
       ipAddress,
       userAgent,
-      details: { status: result.request.status, deliveredAssetId: result.deliveredAssetId || null },
+      details: {
+        status: result.request.status,
+        deliveredAssetId: result.deliveredAssetId || null,
+        fulfillmentMode: payload.fulfillmentAsset?.title?.trim() ? 'published_asset' : 'status_only',
+      },
     })
 
     return NextResponse.json({ ok: true, item: result.request, deliveredAssetId: result.deliveredAssetId })

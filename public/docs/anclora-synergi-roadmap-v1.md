@@ -168,6 +168,40 @@ Entregables:
 - modulos privados mas profundos
 - evolucion coherente de la experiencia premium
 
+### Fase 10. Workspace partner v5 operativo
+
+Objetivo:
+- llevar el workspace a una experiencia mas madura, priorizada y accionable sobre la base de reporting y gobierno interno
+
+Entregables:
+- ownership comercial de referrals
+- estados comerciales mas ricos
+- panel de activos publicados con versionado basico
+- seguimiento mas real de asset packs
+- notificaciones accionables y 360 mas util
+
+### Fase 11. Observability y admin roles
+
+Objetivo:
+- consolidar gobierno interno, permisos y señales operativas para que `Synergi` pueda escalar con control
+
+Entregables:
+- roles admin minimos y superficies protegidas por rol
+- trazabilidad de acciones sensibles
+- eventos observables de salud, error y operacion
+- base clara para soporte y diagnostico operativo
+
+### Fase 12. Analytics y funnel reporting
+
+Objetivo:
+- medir el producto end-to-end con una capa de reporting de negocio consistente
+
+Entregables:
+- taxonomia de funnel de admision, activacion y colaboracion
+- KPIs basicos por fase
+- base para paneles internos de reporting
+- separacion clara entre analytics y observability
+
 ## 4. Features necesarias
 
 ### Bloque público
@@ -201,6 +235,9 @@ Entregables:
 - `synergi-security-operations-hardening`
 - `synergi-admissions-backoffice-productization`
 - `synergi-partner-workspace-v4`
+- `synergi-partner-workspace-v5`
+- `synergi-observability-and-admin-roles`
+- `synergi-analytics-and-funnel-reporting`
 
 ## 5. Dependencias críticas
 

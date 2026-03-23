@@ -106,6 +106,27 @@
       "status": "DONE",
       "assigned_to": "Agent A",
       "dependencies": ["SYNERGI-ADM-002", "SYNERGI-WORKSPACE-007"]
+    },
+    {
+      "id": "SYNERGI-WORKSPACE-009",
+      "title": "Workspace v5 operational layer for referrals, assets and asset pack delivery",
+      "status": "DONE",
+      "assigned_to": "Agent A",
+      "dependencies": ["SYNERGI-WORKSPACE-008", "SYNERGI-SEC-001"]
+    },
+    {
+      "id": "SYNERGI-OBS-002",
+      "title": "Observability, internal admin roles and release guardrails",
+      "status": "DONE",
+      "assigned_to": "Agent B",
+      "dependencies": ["SYNERGI-SEC-001", "SYNERGI-ADM-002"]
+    },
+    {
+      "id": "SYNERGI-ANALYTICS-002",
+      "title": "Analytics and funnel reporting for admissions, activation and workspace usage",
+      "status": "DONE",
+      "assigned_to": "Agent C",
+      "dependencies": ["SYNERGI-ADM-002", "SYNERGI-WORKSPACE-009"]
     }
   ]
 }

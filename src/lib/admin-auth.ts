@@ -13,6 +13,12 @@ export type AdminSession = {
   expiresAt: number
 }
 
+export type AdminCapability =
+  | 'admissions:review'
+  | 'workspace:operate'
+  | 'security:read'
+  | 'security:manage'
+
 type AdminAccount = {
   username: string
   password: string
@@ -26,6 +32,15 @@ const ROLE_RANK: Record<AdminRole, number> = {
   admin: 4,
   owner: 5,
   partner: 0,
+}
+
+const ROLE_CAPABILITIES: Record<AdminRole, AdminCapability[]> = {
+  viewer: ['security:read'],
+  reviewer: ['admissions:review', 'security:read'],
+  operator: ['admissions:review', 'workspace:operate', 'security:read'],
+  admin: ['admissions:review', 'workspace:operate', 'security:read', 'security:manage'],
+  owner: ['admissions:review', 'workspace:operate', 'security:read', 'security:manage'],
+  partner: [],
 }
 
 function getSessionSecret() {
@@ -93,6 +108,22 @@ function normalizeRole(value?: string | null): AdminRole {
 
 function compareRole(current: AdminRole, required: AdminRole) {
   return ROLE_RANK[current] >= ROLE_RANK[required]
+}
+
+export function hasAdminRole(current: AdminRole, required: AdminRole) {
+  return compareRole(current, required)
+}
+
+export function hasAdminCapability(role: AdminRole, capability: AdminCapability) {
+  return ROLE_CAPABILITIES[role]?.includes(capability) ?? false
+}
+
+export function getAdminDefaultLandingPath(role: AdminRole) {
+  if (hasAdminCapability(role, 'admissions:review')) {
+    return '/partner-admissions'
+  }
+
+  return '/partner-admissions/observability'
 }
 
 export function resolveAdminCredentials(username: string, password: string): AdminAccount | null {

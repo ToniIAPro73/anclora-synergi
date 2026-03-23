@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   clearAdminSessionCookie,
   createAdminSessionCookie,
+  getAdminDefaultLandingPath,
   getAuthenticatedAdmin,
   resolveAdminCredentials,
 } from '@/lib/admin-auth'
@@ -73,13 +74,28 @@ export async function POST(request: NextRequest) {
       ipAddress,
       userAgent,
     })
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true, role: account.role, landingPath: getAdminDefaultLandingPath(account.role) })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unable to create admin session.' },
       { status: 500 }
     )
   }
+}
+
+export async function GET() {
+  const session = await getAuthenticatedAdmin().catch(() => null)
+  if (!session) {
+    return NextResponse.json({ authenticated: false })
+  }
+
+  return NextResponse.json({
+    authenticated: true,
+    username: session.username,
+    role: session.role,
+    landingPath: getAdminDefaultLandingPath(session.role),
+    expiresAt: session.expiresAt,
+  })
 }
 
 export async function DELETE() {

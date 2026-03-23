@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
     referralKind?: string
     regionLabel?: string
     budgetLabel?: string
+    estimatedValueLabel?: string
     referralNotes?: string
   }
 
@@ -102,6 +103,7 @@ export async function POST(request: NextRequest) {
       referralKind: payload.referralKind as 'buyer' | 'seller' | 'investor' | 'introducer' | 'partner',
       regionLabel: payload.regionLabel,
       budgetLabel: payload.budgetLabel,
+      estimatedValueLabel: payload.estimatedValueLabel,
       referralNotes: payload.referralNotes,
     })
 

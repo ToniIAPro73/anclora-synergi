@@ -11,7 +11,7 @@ import type {
   PartnerReferralRecord,
 } from '@/lib/partner-workspace-store'
 
-type ConsoleMode = 'referrals' | 'asset-packs'
+type ConsoleMode = 'referrals' | 'asset-packs' | 'assets'
 
 type ReferralsResponse = {
   items: AdminPartnerReferralRecord[]
@@ -23,8 +23,14 @@ type AssetPackRequestsResponse = {
   total: number
 }
 
-const REFERRAL_STATUS_FILTERS = ['all', 'submitted', 'reviewing', 'qualified', 'introduced', 'closed', 'declined'] as const
+type AssetsResponse = {
+  items: PartnerAssetRecord[]
+  total: number
+}
+
+const REFERRAL_STATUS_FILTERS = ['all', 'submitted', 'reviewing', 'qualified', 'introduced', 'negotiating', 'won', 'closed', 'declined'] as const
 const ASSET_PACK_STATUS_FILTERS = ['all', 'submitted', 'reviewing', 'fulfilled', 'declined'] as const
+const ASSET_STATUS_FILTERS = ['all', 'current', 'retired', 'superseded'] as const
 const ASSET_KINDS: PartnerAssetRecord['asset_kind'][] = ['brief', 'document', 'playbook']
 const ACCESS_LEVELS: PartnerAssetRecord['access_level'][] = ['private', 'shared']
 const CONTENT_FORMATS: PartnerAssetRecord['content_format'][] = ['markdown', 'text']
@@ -55,6 +61,10 @@ export function PartnerOperationsConsole() {
   const [referralFilter, setReferralFilter] = useState<(typeof REFERRAL_STATUS_FILTERS)[number]>('all')
   const [selectedReferralId, setSelectedReferralId] = useState<string | null>(null)
   const [referralNotes, setReferralNotes] = useState('')
+  const [referralOwner, setReferralOwner] = useState('')
+  const [referralStage, setReferralStage] = useState<PartnerReferralRecord['commercial_stage']>('intake')
+  const [referralNextAction, setReferralNextAction] = useState('')
+  const [referralEstimatedValue, setReferralEstimatedValue] = useState('')
   const [referralsLoading, setReferralsLoading] = useState(true)
   const [referralsRefreshing, setReferralsRefreshing] = useState(false)
   const [referralBusyId, setReferralBusyId] = useState<string | null>(null)
@@ -94,6 +104,10 @@ export function PartnerOperationsConsole() {
         referral.workspace_display_name,
         referral.referral_notes,
         referral.internal_notes,
+        referral.owner_username,
+        referral.next_action,
+        referral.estimated_value_label,
+        referral.commercial_stage,
         referral.status,
       ]
         .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
@@ -200,6 +214,10 @@ export function PartnerOperationsConsole() {
 
   useEffect(() => {
     setReferralNotes(selectedReferral?.internal_notes || '')
+    setReferralOwner(selectedReferral?.owner_username || '')
+    setReferralStage(selectedReferral?.commercial_stage || 'intake')
+    setReferralNextAction(selectedReferral?.next_action || '')
+    setReferralEstimatedValue(selectedReferral?.estimated_value_label || '')
     setNotice(null)
   }, [selectedReferral])
 
@@ -221,7 +239,7 @@ export function PartnerOperationsConsole() {
     return visibleReferrals.reduce(
       (acc, item) => {
         acc.total += 1
-        if (item.status === 'submitted' || item.status === 'reviewing') acc.open += 1
+        if (['submitted', 'reviewing', 'qualified', 'introduced', 'negotiating'].includes(item.status)) acc.open += 1
         else acc.resolved += 1
         return acc
       },
@@ -255,6 +273,10 @@ export function PartnerOperationsConsole() {
         body: JSON.stringify({
           status: nextStatus,
           internalNotes: referralNotes,
+          ownerUsername: referralOwner,
+          commercialStage: referralStage,
+          nextAction: referralNextAction,
+          estimatedValueLabel: referralEstimatedValue,
         }),
       })
       const body = (await response.json().catch(() => null)) as { error?: string; item?: PartnerReferralRecord } | null
@@ -500,8 +522,72 @@ export function PartnerOperationsConsole() {
                     <strong>{selectedReferral.budget_label || t('reviewValueMissing')}</strong>
                   </div>
                   <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralEstimatedValue')}</span>
+                    <strong>{selectedReferral.estimated_value_label || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralOwner')}</span>
+                    <strong>{selectedReferral.owner_username || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralStage')}</span>
+                    <strong>{t(`workspaceReferralStage_${selectedReferral.commercial_stage}`)}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralNextAction')}</span>
+                    <strong>{selectedReferral.next_action || t('reviewValueMissing')}</strong>
+                  </div>
+                  <div className="synergi-review-meta-card">
                     <span>{t('opsReviewedAt')}</span>
                     <strong>{selectedReferral.reviewed_at ? formatDate(selectedReferral.reviewed_at, language) : t('reviewValueMissing')}</strong>
+                  </div>
+                </div>
+
+                <div className="synergi-review-meta-grid">
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralOwner')}</span>
+                    <input
+                      className="synergi-input"
+                      value={referralOwner}
+                      onChange={(event) => setReferralOwner(event.target.value)}
+                      placeholder={t('opsReferralOwnerPlaceholder')}
+                      disabled={referralBusyId !== null}
+                    />
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralStage')}</span>
+                    <select
+                      className="synergi-select"
+                      value={referralStage}
+                      onChange={(event) => setReferralStage(event.target.value as PartnerReferralRecord['commercial_stage'])}
+                      disabled={referralBusyId !== null}
+                    >
+                      {(['intake', 'qualified', 'introduced', 'negotiating', 'converted', 'closed'] as const).map((stage) => (
+                        <option key={stage} value={stage}>
+                          {t(`workspaceReferralStage_${stage}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralEstimatedValue')}</span>
+                    <input
+                      className="synergi-input"
+                      value={referralEstimatedValue}
+                      onChange={(event) => setReferralEstimatedValue(event.target.value)}
+                      placeholder={t('opsReferralEstimatedValuePlaceholder')}
+                      disabled={referralBusyId !== null}
+                    />
+                  </div>
+                  <div className="synergi-review-meta-card">
+                    <span>{t('workspaceReferralNextAction')}</span>
+                    <input
+                      className="synergi-input"
+                      value={referralNextAction}
+                      onChange={(event) => setReferralNextAction(event.target.value)}
+                      placeholder={t('opsReferralNextActionPlaceholder')}
+                      disabled={referralBusyId !== null}
+                    />
                   </div>
                 </div>
 
@@ -525,7 +611,7 @@ export function PartnerOperationsConsole() {
                   >
                     {referralBusyId === selectedReferral.id ? t('opsSaving') : t('opsSaveNotes')}
                   </button>
-                  {(['reviewing', 'qualified', 'introduced', 'closed', 'declined'] as const).map((status) => (
+                  {(['reviewing', 'qualified', 'introduced', 'negotiating', 'won', 'closed', 'declined'] as const).map((status) => (
                     <button
                       key={status}
                       type="button"

@@ -14,6 +14,8 @@ const ALLOWED_STATUSES = new Set<PartnerReferralRecord['status']>([
   'reviewing',
   'qualified',
   'introduced',
+  'negotiating',
+  'won',
   'closed',
   'declined',
 ])
@@ -68,9 +70,16 @@ export async function PATCH(
     )
   }
 
-  let payload: { status?: string; internalNotes?: string }
+  let payload: {
+    status?: string
+    internalNotes?: string
+    ownerUsername?: string
+    commercialStage?: PartnerReferralRecord['commercial_stage']
+    nextAction?: string
+    estimatedValueLabel?: string
+  }
   try {
-    payload = (await request.json()) as { status?: string; internalNotes?: string }
+    payload = (await request.json()) as typeof payload
   } catch {
     return NextResponse.json({ error: 'Invalid JSON payload.' }, { status: 400 })
   }
@@ -84,6 +93,10 @@ export async function PATCH(
       id,
       status: payload.status as PartnerReferralRecord['status'],
       internalNotes: payload.internalNotes,
+      ownerUsername: payload.ownerUsername,
+      commercialStage: payload.commercialStage,
+      nextAction: payload.nextAction,
+      estimatedValueLabel: payload.estimatedValueLabel,
       reviewedBy: session.username,
     })
 
@@ -103,7 +116,11 @@ export async function PATCH(
       subjectId: referral.id,
       ipAddress,
       userAgent,
-      details: { status: referral.status },
+      details: {
+        status: referral.status,
+        ownerUsername: referral.owner_username,
+        commercialStage: referral.commercial_stage,
+      },
     })
 
     return NextResponse.json({ ok: true, item: referral })

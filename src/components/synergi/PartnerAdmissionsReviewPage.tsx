@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ClipboardCheck, RefreshCcw, ShieldCheck, Sparkles } from 'lucide-react'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 import { PartnerOperationsConsole } from '@/components/synergi/PartnerOperationsConsole'
+import { PartnerAssetsConsole } from '@/components/synergi/PartnerAssetsConsole'
 
 type PartnerAdmissionStatus = 'submitted' | 'under_review' | 'accepted' | 'rejected'
 
@@ -624,6 +625,7 @@ export function PartnerAdmissionsReviewPage() {
         </div>
 
         <PartnerOperationsConsole />
+        <PartnerAssetsConsole />
       </section>
     </main>
   )

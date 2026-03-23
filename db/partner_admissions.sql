@@ -159,6 +159,23 @@ CREATE TABLE IF NOT EXISTS partner_activity_events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS synergi_audit_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_type TEXT NOT NULL,
+  actor_type TEXT NOT NULL,
+  actor_identifier TEXT,
+  actor_role TEXT,
+  endpoint TEXT,
+  method TEXT,
+  status_code INTEGER,
+  subject_type TEXT,
+  subject_id TEXT,
+  ip_address TEXT,
+  user_agent TEXT,
+  details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_partner_admissions_created_at
   ON partner_admissions (created_at DESC);
 
@@ -167,6 +184,24 @@ CREATE INDEX IF NOT EXISTS idx_partner_admissions_status
 
 CREATE INDEX IF NOT EXISTS idx_partner_accounts_email
   ON partner_accounts (email);
+
+CREATE INDEX IF NOT EXISTS idx_partner_accounts_status
+  ON partner_accounts (account_status);
+
+CREATE INDEX IF NOT EXISTS idx_partner_workspaces_status
+  ON partner_workspaces (workspace_status);
+
+CREATE INDEX IF NOT EXISTS idx_partner_assets_account_published_at
+  ON partner_assets (partner_account_id, published_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_partner_assets_review_status
+  ON partner_assets (review_status);
+
+CREATE INDEX IF NOT EXISTS idx_partner_opportunities_account_created_at
+  ON partner_opportunities (partner_account_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_partner_opportunities_status
+  ON partner_opportunities (status);
 
 CREATE INDEX IF NOT EXISTS idx_partner_referrals_account_created_at
   ON partner_referrals (partner_account_id, created_at DESC);
@@ -179,6 +214,30 @@ CREATE INDEX IF NOT EXISTS idx_partner_asset_pack_requests_account_created_at
 
 CREATE INDEX IF NOT EXISTS idx_partner_asset_pack_requests_status
   ON partner_asset_pack_requests (status);
+
+CREATE INDEX IF NOT EXISTS idx_partner_activity_events_created_at
+  ON partner_activity_events (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_partner_activity_events_account_created_at
+  ON partner_activity_events (partner_account_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_partner_activity_events_event_type_created_at
+  ON partner_activity_events (event_type, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_created_at
+  ON synergi_audit_events (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_event_type
+  ON synergi_audit_events (event_type);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_actor_identifier
+  ON synergi_audit_events (actor_identifier);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_actor_type_created_at
+  ON synergi_audit_events (actor_type, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_synergi_audit_events_status_code
+  ON synergi_audit_events (status_code);
 
 CREATE TABLE IF NOT EXISTS synergi_audit_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

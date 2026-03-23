@@ -629,6 +629,15 @@ input {
   padding: 0 34px;
 }
 
+.synergi-kicker {
+  margin: 0;
+  color: var(--synergi-champagne);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
 .synergi-support-card {
   display: block;
   padding: 20px 18px;
@@ -1370,6 +1379,328 @@ input {
   gap: 14px;
 }
 
+.synergi-admin-analytics-shell {
+  padding-bottom: 56px;
+}
+
+.synergi-admin-analytics-hero {
+  display: grid;
+  gap: 18px;
+  padding: 30px 34px;
+}
+
+.synergi-admin-analytics-hero-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.synergi-admin-analytics-meta {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  text-align: right;
+}
+
+.synergi-admin-analytics-meta span {
+  color: var(--synergi-champagne);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.synergi-admin-analytics-meta strong {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+}
+
+.synergi-admin-analytics-refresh {
+  min-height: 48px;
+  padding: 0 22px;
+  gap: 8px;
+}
+
+.synergi-admin-analytics-pills {
+  margin-top: 0;
+}
+
+.synergi-admin-analytics-section {
+  padding: 28px;
+}
+
+.synergi-admin-analytics-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.synergi-admin-analytics-section-head h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.72rem;
+  line-height: 1.1;
+}
+
+.synergi-admin-analytics-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.synergi-admin-analytics-main,
+.synergi-admin-analytics-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.synergi-admin-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.synergi-admin-analytics-grid--dense {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.synergi-admin-analytics-grid--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.synergi-admin-analytics-card {
+  padding: 20px;
+}
+
+.synergi-admin-analytics-card--compact {
+  padding: 18px;
+}
+
+.synergi-admin-analytics-card span {
+  display: block;
+  color: var(--synergi-champagne);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.synergi-admin-analytics-card strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1.05;
+}
+
+.synergi-admin-analytics-card small {
+  display: block;
+  margin-top: 10px;
+  color: var(--synergi-muted);
+  line-height: 1.65;
+}
+
+.synergi-admin-analytics-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(144, 206, 214, 0.18);
+  background: rgba(8, 31, 40, 0.76);
+  color: var(--synergi-cyan);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.synergi-admin-analytics-timeline {
+  display: grid;
+  gap: 16px;
+}
+
+.synergi-admin-analytics-timeline-row {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(247, 241, 231, 0.08);
+}
+
+.synergi-admin-analytics-timeline-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.synergi-admin-analytics-timeline-label strong {
+  font-family: var(--font-display);
+  font-size: 1.06rem;
+}
+
+.synergi-admin-analytics-timeline-label span {
+  color: var(--synergi-muted);
+  font-size: 0.86rem;
+}
+
+.synergi-admin-analytics-timeline-track {
+  position: relative;
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(247, 241, 231, 0.06);
+}
+
+.synergi-admin-analytics-timeline-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(144, 206, 214, 0.26) 0%, rgba(212, 175, 55, 0.88) 55%, rgba(251, 245, 183, 0.72) 100%);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.28);
+}
+
+.synergi-admin-analytics-timeline-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  color: var(--synergi-muted);
+  font-size: 0.82rem;
+}
+
+.synergi-admin-analytics-timeline-stats span {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 241, 231, 0.08);
+  background: rgba(8, 31, 40, 0.52);
+}
+
+.synergi-admin-analytics-partner-list {
+  display: grid;
+  gap: 14px;
+}
+
+.synergi-admin-analytics-partner-card {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(247, 241, 231, 0.08);
+  background: linear-gradient(180deg, rgba(8, 31, 40, 0.74) 0%, rgba(8, 27, 36, 0.94) 100%);
+}
+
+.synergi-admin-analytics-partner-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.synergi-admin-analytics-partner-head strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.24rem;
+}
+
+.synergi-admin-analytics-partner-head p {
+  margin: 8px 0 0;
+  color: var(--synergi-muted);
+}
+
+.synergi-admin-analytics-partner-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--synergi-champagne-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.synergi-admin-analytics-partner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin-top: 14px;
+}
+
+.synergi-admin-analytics-partner-grid span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(247, 241, 231, 0.08);
+  background: rgba(8, 31, 40, 0.56);
+  color: var(--synergi-copy);
+  font-size: 0.83rem;
+}
+
+.synergi-admin-analytics-partner-card small {
+  display: block;
+  margin-top: 14px;
+  color: var(--synergi-muted);
+}
+
+.synergi-admin-analytics-feed {
+  display: grid;
+  gap: 12px;
+}
+
+.synergi-admin-analytics-feed-item {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(247, 241, 231, 0.08);
+  background: rgba(8, 31, 40, 0.62);
+}
+
+.synergi-admin-analytics-feed-item.is-warning {
+  border-color: rgba(214, 177, 79, 0.26);
+}
+
+.synergi-admin-analytics-feed-item.is-success {
+  border-color: rgba(141, 211, 223, 0.24);
+}
+
+.synergi-admin-analytics-feed-item.is-info {
+  border-color: rgba(144, 206, 214, 0.18);
+}
+
+.synergi-admin-analytics-feed-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.synergi-admin-analytics-feed-head strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+}
+
+.synergi-admin-analytics-feed-head p,
+.synergi-admin-analytics-feed-item p {
+  margin: 8px 0 0;
+  color: var(--synergi-muted);
+  line-height: 1.7;
+}
+
+.synergi-admin-analytics-feed-item small {
+  display: block;
+  margin-top: 12px;
+  color: var(--synergi-muted);
+}
+
 .synergi-workspace-referral-card {
   border-color: rgba(144, 206, 214, 0.18);
   background: linear-gradient(180deg, rgba(9, 42, 54, 0.9) 0%, rgba(8, 31, 40, 0.82) 100%);
@@ -1494,6 +1825,14 @@ input {
     grid-template-columns: 1fr;
   }
 
+  .synergi-admin-analytics-layout,
+  .synergi-admin-analytics-grid,
+  .synergi-admin-analytics-grid--dense,
+  .synergi-admin-analytics-grid--compact,
+  .synergi-admin-analytics-partner-grid {
+    grid-template-columns: 1fr;
+  }
+
   .synergi-captcha-widget-frame {
     display: flex;
     width: 100%;
@@ -1511,5 +1850,19 @@ input {
   .synergi-workspace-notification-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .synergi-admin-analytics-hero-head,
+  .synergi-admin-analytics-section-head,
+  .synergi-admin-analytics-partner-head,
+  .synergi-admin-analytics-feed-head,
+  .synergi-admin-analytics-timeline-label {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .synergi-admin-analytics-meta {
+    justify-items: start;
+    text-align: left;
   }
 }

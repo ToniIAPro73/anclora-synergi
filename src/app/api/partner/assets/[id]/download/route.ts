@@ -107,6 +107,9 @@ export async function GET(
     if (!asset) {
       return NextResponse.json({ error: 'Partner asset not found.' }, { status: 404 })
     }
+    if (asset.lifecycle_status === 'archived') {
+      return NextResponse.json({ error: 'This asset is archived and no longer downloadable.' }, { status: 410 })
+    }
 
     const fallbackFilename = `${asset.title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'partner-asset'}${asset.content_format === 'markdown' ? '.md' : '.txt'}`
     const filePayload = asset.asset_body

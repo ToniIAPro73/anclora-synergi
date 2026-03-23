@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildRateLimitKey, checkRateLimit, getRequestIp } from '@/lib/synergi-security'
-import { resolveAdminCredentials } from '@/lib/admin-auth'
+import { buildRateLimitKey, checkRateLimit, getRequestIp, getSynergiAuditSeverity } from '@/lib/synergi-security'
+import { getAdminDefaultLandingPath, hasAdminCapability, resolveAdminCredentials } from '@/lib/admin-auth'
 
 function resetRateLimitStore() {
   ;(globalThis as typeof globalThis & { __ancloraSynergiRateLimits?: Map<string, unknown> }).__ancloraSynergiRateLimits =
@@ -66,4 +66,21 @@ test('resolveAdminCredentials supports multi-account JSON definitions', () => {
     if (previousRole === undefined) delete process.env.SYNERGI_ADMIN_ROLE
     else process.env.SYNERGI_ADMIN_ROLE = previousRole
   }
+})
+
+test('hasAdminCapability maps viewer and operator capabilities correctly', () => {
+  assert.equal(hasAdminCapability('viewer', 'security:read'), true)
+  assert.equal(hasAdminCapability('viewer', 'admissions:review'), false)
+  assert.equal(hasAdminCapability('operator', 'workspace:operate'), true)
+})
+
+test('getAdminDefaultLandingPath sends viewer to observability and reviewer to admissions', () => {
+  assert.equal(getAdminDefaultLandingPath('viewer'), '/partner-admissions/observability')
+  assert.equal(getAdminDefaultLandingPath('reviewer'), '/partner-admissions')
+})
+
+test('getSynergiAuditSeverity classifies failed and denied events as critical', () => {
+  assert.equal(getSynergiAuditSeverity('admin_login_failed', 401), 'critical')
+  assert.equal(getSynergiAuditSeverity('admin_observability_summary_viewed', 200), 'info')
+  assert.equal(getSynergiAuditSeverity('custom_warning', 400), 'warning')
 })

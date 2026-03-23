@@ -189,6 +189,7 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
     referralKind: 'buyer' as PartnerReferralRecord['referral_kind'],
     regionLabel: '',
     budgetLabel: '',
+    estimatedValueLabel: '',
     referralNotes: '',
   })
   const [assetPackForm, setAssetPackForm] = useState({
@@ -325,6 +326,7 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
         referralKind: 'buyer',
         regionLabel: '',
         budgetLabel: '',
+        estimatedValueLabel: '',
         referralNotes: '',
       })
       setModuleNotice(t('workspaceReferralSubmitSuccess'))
@@ -692,13 +694,29 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
                   <span>{t('workspaceAssetDownloads')}</span>
                   <strong>{asset.download_count}</strong>
                 </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetLifecycle')}</span>
+                  <strong>{t(`workspaceAssetLifecycle_${asset.lifecycle_status}`)}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetVersion')}</span>
+                  <strong>{asset.version_label || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetSource')}</span>
+                  <strong>{t(`workspaceAssetSource_${asset.source_type}`)}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceAssetSuperseded')}</span>
+                  <strong>{asset.superseded_by_asset_id || '—'}</strong>
+                </div>
               </div>
               <div className="synergi-workspace-action-grid">
                 <button
                   type="button"
                   className="synergi-button synergi-workspace-action"
                   onClick={() => void handleAssetDownload(asset)}
-                  disabled={downloadingAssetId === asset.id}
+                  disabled={downloadingAssetId === asset.id || asset.lifecycle_status === 'archived'}
                 >
                   {downloadingAssetId === asset.id ? t('workspaceAssetDownloading') : t('workspaceAssetDownload')}
                 </button>
@@ -1038,6 +1056,13 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
                 disabled={submittingReferral}
               />
             </div>
+            <input
+              className="synergi-input"
+              placeholder={t('workspaceReferralEstimatedValue')}
+              value={referralForm.estimatedValueLabel}
+              onChange={(event) => setReferralForm((current) => ({ ...current, estimatedValueLabel: event.target.value }))}
+              disabled={submittingReferral}
+            />
             <textarea
               className="synergi-textarea synergi-workspace-opportunity-notes"
               placeholder={t('workspaceReferralNotes')}
@@ -1072,6 +1097,22 @@ export function SynergiWorkspacePage(props: WorkspaceProps) {
                 <div className="synergi-review-meta-card">
                   <span>{t('workspaceReferralBudget')}</span>
                   <strong>{referral.budget_label || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceReferralEstimatedValue')}</span>
+                  <strong>{referral.estimated_value_label || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceReferralOwner')}</span>
+                  <strong>{referral.owner_username || '—'}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceReferralStage')}</span>
+                  <strong>{t(`workspaceReferralStage_${referral.commercial_stage}`)}</strong>
+                </div>
+                <div className="synergi-review-meta-card">
+                  <span>{t('workspaceReferralNextAction')}</span>
+                  <strong>{referral.next_action || '—'}</strong>
                 </div>
                 <div className="synergi-review-meta-card">
                   <span>{t('workspaceOpportunityCreated')}</span>
