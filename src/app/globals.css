@@ -184,6 +184,10 @@ input {
   cursor: pointer;
 }
 
+.synergi-language button svg {
+  display: block;
+}
+
 .synergi-language button.is-active {
   background: linear-gradient(135deg, #8b55d8 0%, #f2d9ff 46%, #b97fff 56%, #7035bf 100%);
   color: #13081d;
@@ -223,6 +227,7 @@ input {
   display: grid;
   gap: 24px;
   padding: 42px 44px;
+  margin-top: 38px;
 }
 
 .synergi-review-hero {

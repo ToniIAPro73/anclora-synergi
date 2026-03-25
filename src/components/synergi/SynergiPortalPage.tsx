@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, BookOpenText, KeyRound, ShieldCheck, Sparkles, UserRoundPlus } from 'lucide-react'
+import { ArrowRight, BookOpenText, KeyRound, Laptop2, MoonStar, ShieldCheck, Sparkles, SunMedium, UserRoundPlus } from 'lucide-react'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 
 declare global {
@@ -52,6 +52,11 @@ export function SynergiPortalPage() {
   const [captchaReady, setCaptchaReady] = useState(!recaptchaSiteKey)
   const captchaContainerRef = useRef<HTMLDivElement | null>(null)
   const captchaWidgetIdRef = useRef<number | null>(null)
+  const themeIcons = {
+    dark: MoonStar,
+    light: SunMedium,
+    system: Laptop2,
+  } as const
 
   useEffect(() => {
     window.onSynergiRecaptchaVerified = (token: string) => {
@@ -222,18 +227,25 @@ export function SynergiPortalPage() {
           <div className="synergi-topbar-controls">
             <div className="synergi-language">
               {([
-                { value: 'dark', label: 'OSCURO' },
-                { value: 'light', label: 'CLARO' },
-                { value: 'system', label: 'AUTO' },
+                { value: 'dark', label: 'Tema oscuro' },
+                { value: 'light', label: 'Tema claro' },
+                { value: 'system', label: 'Tema automático' },
               ] as const).map((item) => (
+                (() => {
+                  const Icon = themeIcons[item.value]
+                  return (
                 <button
                   key={item.value}
                   type="button"
                   className={item.value === theme ? 'is-active' : ''}
                   onClick={() => setTheme(item.value)}
+                  aria-label={item.label}
+                  title={item.label}
                 >
-                  {item.label}
+                  <Icon size={16} strokeWidth={1.8} />
                 </button>
+                  )
+                })()
               ))}
             </div>
             <div className="synergi-language">
