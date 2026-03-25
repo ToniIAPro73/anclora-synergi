@@ -268,8 +268,8 @@ export function PartnerAdmissionsReviewPage() {
           <div className="synergi-brand">
             <div className="synergi-brand-badge">
               <Image
-                src="/brand/logo-anclora-private-estates.png"
-                alt="Anclora Private Estates"
+                src="/brand/logo-anclora-synergi.png"
+                alt="Anclora Synergi"
                 width={40}
                 height={40}
                 className="synergi-brand-logo"

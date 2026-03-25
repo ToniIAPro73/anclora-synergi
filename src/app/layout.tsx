@@ -17,6 +17,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Anclora Synergi',
   description: 'Independent partner portal for the curated Anclora ecosystem',
+  icons: {
+    icon: '/brand/logo-anclora-synergi.png',
+  },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -28,4 +31,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   )
 }
-
