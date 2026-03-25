@@ -31,6 +31,11 @@ const PARTNER_GUIDE_HREF = '/docs/Gu%C3%ADa_del_Partner.pdf'
 
 export function SynergiPortalPage() {
   const { language, setLanguage, t } = useI18n()
+  const [theme, setTheme] = useState<'dark' | 'light' | 'system'>(() => {
+    if (typeof window === 'undefined') return 'dark'
+    const storedTheme = window.localStorage.getItem('anclora-synergi-theme')
+    return storedTheme === 'light' || storedTheme === 'system' ? storedTheme : 'dark'
+  })
   const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY?.trim() || ''
   const [form, setForm] = useState({
     name: '',
@@ -58,6 +63,25 @@ export function SynergiPortalPage() {
       delete window.onSynergiRecaptchaVerified
     }
   }, [])
+
+  useEffect(() => {
+    const root = document.documentElement
+    const applyTheme = () => {
+      const resolvedTheme = theme === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+        : theme
+      root.dataset.theme = resolvedTheme
+    }
+
+    applyTheme()
+    window.localStorage.setItem('anclora-synergi-theme', theme)
+
+    if (theme !== 'system') return
+
+    const media = window.matchMedia('(prefers-color-scheme: light)')
+    media.addEventListener('change', applyTheme)
+    return () => media.removeEventListener('change', applyTheme)
+  }, [theme])
 
   useEffect(() => {
     if (!recaptchaSiteKey) {
@@ -195,17 +219,35 @@ export function SynergiPortalPage() {
             </div>
           </div>
 
-          <div className="synergi-language">
-            {(['es', 'en', 'de'] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={item === language ? 'is-active' : ''}
-                onClick={() => setLanguage(item)}
-              >
-                {item.toUpperCase()}
-              </button>
-            ))}
+          <div className="synergi-topbar-controls">
+            <div className="synergi-language">
+              {([
+                { value: 'dark', label: 'OSCURO' },
+                { value: 'light', label: 'CLARO' },
+                { value: 'system', label: 'AUTO' },
+              ] as const).map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  className={item.value === theme ? 'is-active' : ''}
+                  onClick={() => setTheme(item.value)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div className="synergi-language">
+              {(['es', 'en', 'de'] as const).map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className={item === language ? 'is-active' : ''}
+                  onClick={() => setLanguage(item)}
+                >
+                  {item.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
         </header>
 
