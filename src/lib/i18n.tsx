@@ -10,6 +10,7 @@ const translations: Record<Language, Dictionary> = {
   es: {
     brandLine: 'Portal de partners del ecosistema Anclora',
     backToPrivateEstates: 'Volver a Private Estates',
+    backToAncloraGroup: 'Volver a Anclora Group',
     portalEyebrow: 'Synergi Portal',
     portalTitle: 'Una única puerta para admisión y acceso partner',
     portalSubtitle: 'Desde aquí conviven el proceso de solicitud de partnership y la entrada privada para colaboradores ya aprobados. El embudo correcto sigue intacto y el login solo se activa cuando Anclora ya ha validado el acceso.',
@@ -596,6 +597,7 @@ const translations: Record<Language, Dictionary> = {
   en: {
     brandLine: 'Partner portal for the Anclora ecosystem',
     backToPrivateEstates: 'Back to Private Estates',
+    backToAncloraGroup: 'Back to Anclora Group',
     portalEyebrow: 'Synergi Portal',
     portalTitle: 'A single doorway for admission and partner access',
     portalSubtitle: 'This is where the partnership request flow and the private entry for already approved collaborators live together. The funnel stays intact and the login only activates once Anclora has validated the access.',
@@ -1118,6 +1120,7 @@ const translations: Record<Language, Dictionary> = {
   de: {
     brandLine: 'Partnerportal des Anclora-Ökosystems',
     backToPrivateEstates: 'Zurück zu Private Estates',
+    backToAncloraGroup: 'Zurück zu Anclora Group',
     portalEyebrow: 'Synergi Portal',
     portalTitle: 'Ein gemeinsamer Einstieg für Admission und Partnerzugang',
     portalSubtitle: 'Hier leben die Partnership-Anfrage und der private Zugang für bereits freigegebene Kollaborateure zusammen. Der Funnel bleibt intakt und das Login wird erst aktiv, wenn Anclora den Zugang validiert hat.',
