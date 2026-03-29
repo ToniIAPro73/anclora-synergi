@@ -1908,6 +1908,23 @@ input {
 
   .synergi-topbar-controls {
     justify-self: start;
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .synergi-language {
+    gap: 4px;
+    padding: 3px;
+  }
+
+  .synergi-language button {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 8px 12px;
+    font-size: 0.64rem;
+    letter-spacing: 0.16em;
   }
 
   .synergi-hero-panel,
