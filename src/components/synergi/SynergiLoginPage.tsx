@@ -6,7 +6,13 @@ import Link from 'next/link'
 import { KeyRound, Laptop2, Mail, MoonStar, ShieldCheck, Sparkles, SunMedium } from 'lucide-react'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 
-export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string }) {
+export function SynergiLoginPage({
+  prefillEmail = '',
+  prefillSecret = '',
+}: {
+  prefillEmail?: string
+  prefillSecret?: string
+}) {
   const { language, setLanguage, t } = useI18n()
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>(() => {
     if (typeof window === 'undefined') return 'dark'
@@ -15,7 +21,7 @@ export function SynergiLoginPage({ prefillEmail = '' }: { prefillEmail?: string 
   })
   const [form, setForm] = useState({
     email: prefillEmail,
-    secret: '',
+    secret: prefillSecret,
     remember: true,
   })
   const [submitting, setSubmitting] = useState(false)

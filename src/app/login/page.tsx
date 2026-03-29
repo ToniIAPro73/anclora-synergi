@@ -17,7 +17,11 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
   const params = await searchParams
   const emailParam = params.email
-  const prefillEmail = Array.isArray(emailParam) ? emailParam[0] || '' : emailParam || ''
+  const useEnvAutofill = process.env.UTILIZAR_USER_TEXT?.trim().toLowerCase() === 'true'
+  const envEmail = useEnvAutofill ? process.env.USER_TEXT?.trim() || '' : ''
+  const envSecret = useEnvAutofill ? process.env.PASS_TEXT?.trim() || '' : ''
+  const requestedEmail = Array.isArray(emailParam) ? emailParam[0] || '' : emailParam || ''
+  const prefillEmail = requestedEmail || envEmail
 
-  return <SynergiLoginPage prefillEmail={prefillEmail} />
+  return <SynergiLoginPage prefillEmail={prefillEmail} prefillSecret={envSecret} />
 }
