@@ -33,3 +33,13 @@ Required environment variables:
 - `SYNERGI_EMAIL_FROM`
 - `SYNERGI_EMAIL_REPLY_TO`
 - `SYNERGI_SUPPORT_EMAIL`
+
+## UX/UI contracts
+
+Read these before changing interface components:
+
+1. `docs/standards/ANCLORA_ECOSYSTEM_CONTRACT_GROUPS.md`
+2. `docs/standards/ANCLORA_PREMIUM_APP_CONTRACT.md`
+3. `docs/standards/UI_MOTION_CONTRACT.md`
+4. `docs/standards/MODAL_CONTRACT.md`
+5. `docs/standards/LOCALIZATION_CONTRACT.md`
