@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Activity, RefreshCcw, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { SynergiUiToggles } from '@/components/synergi/SynergiUiToggles'
 import { useI18n } from '@/lib/i18n'
 import type { SynergiAuditEventRecord, SynergiObservabilitySummary, SynergiReleaseCheckRecord, SynergiReleaseCheckSummary } from '@/lib/synergi-security'
 
@@ -43,7 +44,7 @@ function getSeverityTone(status: SynergiReleaseCheckRecord['status']) {
 }
 
 export function PartnerObservabilityDashboard(props: { canCreateReleaseChecks: boolean }) {
-  const { language, setLanguage, t } = useI18n()
+  const { language, t } = useI18n()
   const [observability, setObservability] = useState<ObservabilityResponse | null>(null)
   const [releaseChecks, setReleaseChecks] = useState<ReleaseChecksResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -177,13 +178,7 @@ export function PartnerObservabilityDashboard(props: { canCreateReleaseChecks: b
               <p className="synergi-brand-line">{t('observabilitySubtitle')}</p>
             </div>
           </div>
-          <div className="synergi-language">
-            {(['es', 'en', 'de'] as const).map((option) => (
-              <button key={option} type="button" className={language === option ? 'is-active' : ''} onClick={() => setLanguage(option)}>
-                {option.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <SynergiUiToggles />
         </div>
 
         <section className="synergi-panel synergi-observability-hero">

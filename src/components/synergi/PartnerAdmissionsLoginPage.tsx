@@ -1,50 +1,17 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Laptop2, MoonStar, SunMedium } from 'lucide-react'
-import { useI18n } from '@/lib/i18n'
-
-function buildAncloraGroupHref() {
-  return process.env.NEXT_PUBLIC_ANCLORA_GROUP_URL?.trim() || 'https://anclora-group.vercel.app/workspace'
-}
+import { SynergiUiToggles } from '@/components/synergi/SynergiUiToggles'
+import { buildAncloraGroupHref, useI18n } from '@/lib/i18n'
 
 export function PartnerAdmissionsLoginPage() {
-  const { language, setLanguage, t } = useI18n()
-  const [theme, setTheme] = useState<'dark' | 'light' | 'system'>(() => {
-    if (typeof window === 'undefined') return 'dark'
-    const storedTheme = window.localStorage.getItem('anclora-synergi-theme')
-    return storedTheme === 'light' || storedTheme === 'system' ? storedTheme : 'dark'
-  })
+  const { t } = useI18n()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const themeIcons = {
-    dark: MoonStar,
-    light: SunMedium,
-    system: Laptop2,
-  } as const
-
-  useEffect(() => {
-    const root = document.documentElement
-    const applyTheme = () => {
-      const resolvedTheme = theme === 'system'
-        ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-        : theme
-      root.dataset.theme = resolvedTheme
-    }
-
-    applyTheme()
-    window.localStorage.setItem('anclora-synergi-theme', theme)
-
-    if (theme !== 'system') return
-
-    const media = window.matchMedia('(prefers-color-scheme: light)')
-    media.addEventListener('change', applyTheme)
-    return () => media.removeEventListener('change', applyTheme)
-  }, [theme])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -95,41 +62,7 @@ export function PartnerAdmissionsLoginPage() {
             </div>
           </div>
 
-          <div className="synergi-topbar-controls">
-            <div className="synergi-language">
-              {([
-                { value: 'dark', label: 'Tema oscuro' },
-                { value: 'light', label: 'Tema claro' },
-                { value: 'system', label: 'Tema automático' },
-              ] as const).map((item) => {
-                const Icon = themeIcons[item.value]
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    className={item.value === theme ? 'is-active' : ''}
-                    onClick={() => setTheme(item.value)}
-                    aria-label={item.label}
-                    title={item.label}
-                  >
-                    <Icon size={16} strokeWidth={1.8} />
-                  </button>
-                )
-              })}
-            </div>
-            <div className="synergi-language">
-              {(['es', 'en', 'de'] as const).map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={item === language ? 'is-active' : ''}
-                  onClick={() => setLanguage(item)}
-                >
-                  {item.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
+          <SynergiUiToggles />
         </header>
 
         <div className="synergi-review-login-wrap">

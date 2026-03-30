@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ClipboardCheck, RefreshCcw, ShieldCheck, Sparkles } from 'lucide-react'
-import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
+import { SynergiUiToggles } from '@/components/synergi/SynergiUiToggles'
+import { buildAncloraGroupHref, useI18n } from '@/lib/i18n'
 import { PartnerOperationsConsole } from '@/components/synergi/PartnerOperationsConsole'
 import { PartnerAssetsConsole } from '@/components/synergi/PartnerAssetsConsole'
 
@@ -89,7 +90,7 @@ function formatDate(value: string, language: string) {
 }
 
 export function PartnerAdmissionsReviewPage() {
-  const { language, setLanguage, t } = useI18n()
+  const { language, t } = useI18n()
   const [items, setItems] = useState<PartnerAdmissionRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -261,8 +262,8 @@ export function PartnerAdmissionsReviewPage() {
       <div className="synergi-noise" />
       <section className="synergi-shell">
         <header className="synergi-topbar">
-          <Link href={buildPrivateEstatesHref(language)} className="synergi-backlink">
-            {t('backToPrivateEstates')}
+          <Link href={buildAncloraGroupHref()} className="synergi-backlink">
+            {t('backToAncloraGroup')}
           </Link>
 
           <div className="synergi-brand">
@@ -281,18 +282,7 @@ export function PartnerAdmissionsReviewPage() {
             </div>
           </div>
 
-          <div className="synergi-language">
-            {(['es', 'en', 'de'] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={item === language ? 'is-active' : ''}
-                onClick={() => setLanguage(item)}
-              >
-                {item.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <SynergiUiToggles />
         </header>
 
         <section className="synergi-panel synergi-review-hero">

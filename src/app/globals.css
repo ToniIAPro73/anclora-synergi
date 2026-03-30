@@ -3,6 +3,17 @@
   --synergi-navy: #1d0f2b;
   --synergi-deep: #28173a;
   --synergi-slate: #3d2758;
+  --synergi-surface: rgba(23, 11, 34, 0.78);
+  --synergi-panel-bg: linear-gradient(180deg, rgba(31, 16, 48, 0.92) 0%, rgba(18, 10, 27, 0.9) 100%);
+  --synergi-panel-soft: rgba(23, 11, 35, 0.62);
+  --synergi-summary-bg: rgba(8, 31, 40, 0.6);
+  --synergi-highlight-bg: linear-gradient(135deg, rgba(64, 31, 100, 0.58) 0%, rgba(24, 11, 39, 0.52) 100%);
+  --synergi-guide-bg: linear-gradient(180deg, rgba(32, 16, 50, 0.76) 0%, rgba(18, 10, 29, 0.62) 100%);
+  --synergi-input-bg: rgba(29, 14, 43, 0.42);
+  --synergi-select-bg: rgba(10, 48, 58, 0.42);
+  --synergi-check-bg: rgba(29, 14, 43, 0.28);
+  --synergi-notice-bg: rgba(77, 36, 115, 0.2);
+  --synergi-hero-pill-bg: rgba(22, 12, 35, 0.5);
   --synergi-champagne: #bf8cff;
   --synergi-champagne-soft: #e5c9ff;
   --synergi-cyan: #b8a8ff;
@@ -18,6 +29,17 @@ html[data-theme='light'] {
   --synergi-navy: #f6edff;
   --synergi-deep: #efe3ff;
   --synergi-slate: #e3d0ff;
+  --synergi-surface: rgba(255, 250, 255, 0.88);
+  --synergi-panel-bg: linear-gradient(180deg, rgba(255, 250, 255, 0.96) 0%, rgba(242, 234, 255, 0.94) 100%);
+  --synergi-panel-soft: rgba(250, 245, 255, 0.92);
+  --synergi-summary-bg: rgba(245, 237, 255, 0.9);
+  --synergi-highlight-bg: linear-gradient(135deg, rgba(234, 218, 255, 0.92) 0%, rgba(248, 240, 255, 0.94) 100%);
+  --synergi-guide-bg: linear-gradient(180deg, rgba(250, 245, 255, 0.96) 0%, rgba(239, 229, 255, 0.94) 100%);
+  --synergi-input-bg: rgba(255, 251, 255, 0.96);
+  --synergi-select-bg: rgba(255, 251, 255, 0.96);
+  --synergi-check-bg: rgba(248, 241, 255, 0.94);
+  --synergi-notice-bg: rgba(237, 228, 252, 0.88);
+  --synergi-hero-pill-bg: rgba(241, 232, 255, 0.92);
   --synergi-champagne: #7d3fd2;
   --synergi-champagne-soft: #5b2ba0;
   --synergi-cyan: #8b55d8;
@@ -95,7 +117,7 @@ input {
   padding: 18px 24px;
   border: 1px solid rgba(191, 140, 255, 0.2);
   border-radius: 28px;
-  background: rgba(23, 11, 34, 0.78);
+  background: var(--synergi-surface);
   backdrop-filter: blur(14px);
 }
 
@@ -167,7 +189,7 @@ input {
   gap: 6px;
   padding: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--synergi-cream) 8%, transparent);
   border: 1px solid rgba(191, 140, 255, 0.14);
 }
 
@@ -207,8 +229,7 @@ input {
 .synergi-panel {
   border: 1px solid rgba(191, 140, 255, 0.18);
   border-radius: 34px;
-  background:
-    linear-gradient(180deg, rgba(31, 16, 48, 0.92) 0%, rgba(18, 10, 27, 0.9) 100%);
+  background: var(--synergi-panel-bg);
   box-shadow:
     0 38px 90px rgba(4, 2, 10, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -252,7 +273,7 @@ input {
   padding: 22px;
   border-radius: 24px;
   border: 1px solid rgba(247, 241, 231, 0.1);
-  background: rgba(8, 31, 40, 0.6);
+  background: var(--synergi-summary-bg);
 }
 
 .synergi-review-summary-card strong {
@@ -302,7 +323,7 @@ input {
   padding: 24px 26px;
   border-radius: 26px;
   border: 1px solid rgba(191, 140, 255, 0.2);
-  background: linear-gradient(135deg, rgba(64, 31, 100, 0.58) 0%, rgba(24, 11, 39, 0.52) 100%);
+  background: var(--synergi-highlight-bg);
 }
 
 .synergi-highlight h2 {
@@ -339,8 +360,7 @@ input {
   padding: 18px 20px;
   border-radius: 22px;
   border: 1px solid rgba(191, 140, 255, 0.18);
-  background:
-    linear-gradient(180deg, rgba(32, 16, 50, 0.76) 0%, rgba(18, 10, 29, 0.62) 100%);
+  background: var(--synergi-guide-bg);
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
@@ -397,7 +417,7 @@ input {
 .synergi-support-card {
   border-radius: 24px;
   border: 1px solid rgba(247, 241, 231, 0.1);
-  background: rgba(23, 11, 35, 0.62);
+  background: var(--synergi-panel-soft);
 }
 
 .synergi-signal-card {
@@ -430,7 +450,7 @@ input {
   padding: 18px;
   border-radius: 26px;
   border: 1px solid rgba(191, 140, 255, 0.18);
-  background: linear-gradient(135deg, rgba(73, 37, 108, 0.56) 0%, rgba(25, 14, 39, 0.5) 100%);
+  background: var(--synergi-highlight-bg);
 }
 
 .synergi-approved-icon {
@@ -473,7 +493,7 @@ input {
   min-height: 56px;
   border: 1px solid rgba(191, 140, 255, 0.16);
   border-radius: 18px;
-  background: rgba(29, 14, 43, 0.42);
+  background: var(--synergi-input-bg);
   color: var(--synergi-cream);
   padding: 0 18px;
   transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
@@ -494,7 +514,7 @@ input {
   min-height: 56px;
   border: 1px solid rgba(212, 175, 55, 0.16);
   border-radius: 18px;
-  background: rgba(10, 48, 58, 0.42);
+  background: var(--synergi-select-bg);
   color: var(--synergi-cream);
   padding: 0 18px;
   transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
@@ -514,7 +534,7 @@ input {
   padding: 0 18px;
   border-radius: 18px;
   border: 1px solid rgba(191, 140, 255, 0.12);
-  background: rgba(29, 14, 43, 0.28);
+  background: var(--synergi-check-bg);
   color: var(--synergi-muted);
 }
 
@@ -536,7 +556,7 @@ input {
   padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid rgba(229, 201, 255, 0.24);
-  background: rgba(77, 36, 115, 0.2);
+  background: var(--synergi-notice-bg);
   color: #f3e6ff;
   font-size: 0.95rem;
   line-height: 1.7;
@@ -610,7 +630,7 @@ input {
   padding: 0 16px;
   border-radius: 999px;
   border: 1px solid rgba(191, 140, 255, 0.16);
-  background: rgba(22, 12, 35, 0.5);
+  background: var(--synergi-hero-pill-bg);
   color: var(--synergi-cream);
   font-size: 0.78rem;
   font-weight: 700;

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { BarChart3, BellRing, RefreshCcw, ShieldCheck, TrendingUp, Users } from 'lucide-react'
+import { SynergiUiToggles } from '@/components/synergi/SynergiUiToggles'
 import { useI18n } from '@/lib/i18n'
 import type { PartnerAdmissionsAnalyticsRecord } from '@/lib/partner-admissions-store'
 import type { PartnerWorkspaceAnalyticsRecord } from '@/lib/partner-workspace-store'
@@ -82,7 +83,7 @@ function severityLabel(kind: PartnerWorkspaceAnalyticsRecord['recentActivity'][n
 }
 
 export function AdminAnalyticsDashboard() {
-  const { language, setLanguage, t } = useI18n()
+  const { language, t } = useI18n()
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -268,13 +269,7 @@ export function AdminAnalyticsDashboard() {
               <p className="synergi-brand-line">{t('analyticsSubtitle')}</p>
             </div>
           </div>
-          <div className="synergi-language">
-            {(['es', 'en', 'de'] as const).map((option) => (
-              <button key={option} type="button" className={language === option ? 'is-active' : ''} onClick={() => setLanguage(option)}>
-                {option.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <SynergiUiToggles />
         </div>
 
         <section className="synergi-panel synergi-admin-analytics-hero">
