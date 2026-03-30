@@ -4,6 +4,7 @@
 Fijar una gramática premium compartida para productos públicos o semi-públicos que deben transmitir valor, criterio y confianza sin perder claridad operativa.
 
 Ámbito:
+- `anclora-impulso`
 - `Boveda-Anclora/dashboard`
 - `anclora-synergi`
 - `anclora-data-lab`

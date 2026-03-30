@@ -18,9 +18,10 @@ Aplicaciones internas:
 - `anclora-advisor-ai`
 - `anclora-nexus`
 - `anclora-content-generator-ai`
-- `anclora-impulso` como repositorio fuente de contratos base y consumidor del patrón interno
+- `anclora-impulso` como repositorio fuente de contratos base
 
 Aplicaciones premium:
+- `anclora-impulso`
 - `Boveda-Anclora/dashboard`
 - `anclora-synergi`
 - `anclora-data-lab`
@@ -92,7 +93,7 @@ Al crear una app nueva:
 | `anclora-advisor-ai` | Interna | `es`, `en` | `dark/light/system` | Base + interno |
 | `anclora-nexus` | Interna | `es`, `en`, `de`, `ru` | `dark` operativo | Base + interno |
 | `anclora-content-generator-ai` | Interna | `es`, `en` | `dark/light/system` | Base + interno |
-| `anclora-impulso` | Interna | `es`, `en` | `dark/light` | Base + interno |
+| `anclora-impulso` | Premium | `es`, `en` | `dark/light` | Base + premium |
 | `Boveda-Anclora/dashboard` | Premium | `es`, `en`, `de` | `dark/light` | Base + premium |
 | `anclora-synergi` | Premium | `es`, `en`, `de` | tema editorial único | Base + premium |
 | `anclora-data-lab` | Premium | `es`, `en`, `de` | `dark/light/system` | Base + premium |
