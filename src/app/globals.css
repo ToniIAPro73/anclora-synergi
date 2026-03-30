@@ -1940,11 +1940,15 @@ input {
   .synergi-shell {
     width: min(100% - 24px, 1320px);
     padding-top: 16px;
+    padding-bottom: 28px;
   }
 
   .synergi-topbar {
     grid-template-columns: 1fr;
     justify-items: start;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 24px;
   }
 
   .synergi-brand {
@@ -1977,6 +1981,36 @@ input {
     padding: 24px;
   }
 
+  .synergi-review-hero,
+  .synergi-ops-panel {
+    padding: 24px 22px;
+    border-radius: 28px;
+  }
+
+  .synergi-review-title {
+    font-size: clamp(2.6rem, 13vw, 4rem);
+  }
+
+  .synergi-subtitle {
+    margin-top: 16px;
+    line-height: 1.7;
+  }
+
+  .synergi-review-summary-grid,
+  .synergi-ops-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .synergi-review-summary-card {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .synergi-review-summary-card strong {
+    font-size: 1.7rem;
+  }
+
   .synergi-support-grid {
     grid-template-columns: 1fr;
   }
@@ -2005,6 +2039,91 @@ input {
   .synergi-review-toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .synergi-review-search,
+  .synergi-ops-search {
+    gap: 10px;
+  }
+
+  .synergi-review-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    margin-inline: -2px;
+    padding: 2px 2px 6px;
+    scrollbar-width: none;
+  }
+
+  .synergi-review-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .synergi-review-filter,
+  .synergi-review-refresh {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-height: 40px;
+    padding: 0 14px;
+  }
+
+  .synergi-review-list-panel,
+  .synergi-review-detail-panel {
+    padding: 22px 20px;
+    border-radius: 24px;
+  }
+
+  .synergi-review-section-head h2 {
+    font-size: 1.72rem;
+  }
+
+  .synergi-review-section-head p {
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  .synergi-review-list,
+  .synergi-review-detail {
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .synergi-review-item,
+  .synergi-review-meta-card,
+  .synergi-review-content-card,
+  .synergi-review-timeline-item {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .synergi-review-item-top {
+    align-items: flex-start;
+  }
+
+  .synergi-review-badge {
+    min-height: 28px;
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+  }
+
+  .synergi-review-meta-grid,
+  .synergi-review-360-grid,
+  .synergi-review-handoff-grid,
+  .synergi-review-timeline,
+  .synergi-review-actions,
+  .synergi-ops-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .synergi-review-notes {
+    min-height: 120px;
+  }
+
+  .synergi-ops-panel {
+    margin-top: 28px;
   }
 
   .synergi-workspace-dashboard-hero-head,
@@ -2026,5 +2145,23 @@ input {
   .synergi-admin-analytics-meta {
     justify-items: start;
     text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .synergi-review-summary-grid,
+  .synergi-ops-summary-grid,
+  .synergi-review-meta-grid,
+  .synergi-review-360-grid,
+  .synergi-review-handoff-grid,
+  .synergi-review-timeline,
+  .synergi-review-actions,
+  .synergi-ops-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .synergi-review-item-top {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
