@@ -46,6 +46,27 @@ html[data-theme='light'] {
   --synergi-cream: #170923;
   --synergi-muted: rgba(23, 9, 35, 0.72);
   --synergi-subtle: rgba(23, 9, 35, 0.1);
+  --synergi-toggle-bg: rgba(91, 43, 160, 0.08);
+  --synergi-toggle-border: rgba(91, 43, 160, 0.14);
+  --synergi-toggle-text: rgba(23, 9, 35, 0.58);
+  --synergi-review-chip-bg: rgba(255, 255, 255, 0.94);
+  --synergi-review-chip-border: rgba(91, 43, 160, 0.16);
+  --synergi-review-chip-active-bg: rgba(139, 85, 216, 0.12);
+  --synergi-review-card-bg: rgba(255, 252, 255, 0.92);
+  --synergi-review-card-border: rgba(91, 43, 160, 0.12);
+  --synergi-review-card-shadow: 0 16px 34px rgba(77, 47, 109, 0.08);
+}
+
+:root {
+  --synergi-toggle-bg: color-mix(in srgb, var(--synergi-cream) 8%, transparent);
+  --synergi-toggle-border: rgba(191, 140, 255, 0.14);
+  --synergi-toggle-text: rgba(247, 241, 231, 0.58);
+  --synergi-review-chip-bg: rgba(8, 31, 40, 0.56);
+  --synergi-review-chip-border: rgba(212, 175, 55, 0.18);
+  --synergi-review-chip-active-bg: rgba(212, 175, 55, 0.18);
+  --synergi-review-card-bg: rgba(8, 31, 40, 0.52);
+  --synergi-review-card-border: rgba(247, 241, 231, 0.1);
+  --synergi-review-card-shadow: none;
 }
 
 * {
@@ -189,8 +210,8 @@ input {
   gap: 6px;
   padding: 4px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--synergi-cream) 8%, transparent);
-  border: 1px solid rgba(191, 140, 255, 0.14);
+  background: var(--synergi-toggle-bg);
+  border: 1px solid var(--synergi-toggle-border);
 }
 
 .synergi-language button {
@@ -199,7 +220,7 @@ input {
   min-height: 42px;
   padding: 9px 15px;
   background: transparent;
-  color: rgba(247, 241, 231, 0.58);
+  color: var(--synergi-toggle-text);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -826,14 +847,14 @@ input {
   min-height: 42px;
   padding: 0 16px;
   border-radius: 999px;
-  border: 1px solid rgba(212, 175, 55, 0.18);
-  background: rgba(8, 31, 40, 0.56);
+  border: 1px solid var(--synergi-review-chip-border);
+  background: var(--synergi-review-chip-bg);
   color: var(--synergi-cream);
   cursor: pointer;
 }
 
 .synergi-review-filter.is-active {
-  background: rgba(212, 175, 55, 0.18);
+  background: var(--synergi-review-chip-active-bg);
   border-color: rgba(234, 217, 160, 0.52);
   color: var(--synergi-champagne-soft);
 }
@@ -875,10 +896,11 @@ input {
   padding: 18px;
   text-align: left;
   border-radius: 20px;
-  border: 1px solid rgba(247, 241, 231, 0.1);
-  background: rgba(8, 31, 40, 0.52);
+  border: 1px solid var(--synergi-review-card-border);
+  background: var(--synergi-review-card-bg);
   color: var(--synergi-cream);
   cursor: pointer;
+  box-shadow: var(--synergi-review-card-shadow);
 }
 
 .synergi-review-item.is-active {
@@ -937,7 +959,8 @@ input {
   border-radius: 22px;
   border: 1px dashed rgba(247, 241, 231, 0.14);
   color: var(--synergi-muted);
-  background: rgba(8, 31, 40, 0.34);
+  background: var(--synergi-review-card-bg);
+  box-shadow: var(--synergi-review-card-shadow);
 }
 
 .synergi-review-detail {
@@ -965,8 +988,9 @@ input {
   gap: 8px;
   padding: 14px;
   border-radius: 18px;
-  border: 1px solid rgba(247, 241, 231, 0.08);
-  background: rgba(4, 19, 26, 0.34);
+  border: 1px solid var(--synergi-review-card-border);
+  background: var(--synergi-review-card-bg);
+  box-shadow: var(--synergi-review-card-shadow);
 }
 
 .synergi-review-timeline-item span {
@@ -993,8 +1017,9 @@ input {
   gap: 8px;
   padding: 18px;
   border-radius: 22px;
-  border: 1px solid rgba(247, 241, 231, 0.1);
-  background: rgba(8, 31, 40, 0.52);
+  border: 1px solid var(--synergi-review-card-border);
+  background: var(--synergi-review-card-bg);
+  box-shadow: var(--synergi-review-card-shadow);
 }
 
 .synergi-review-meta-card span,
