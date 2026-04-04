@@ -1,31 +1,33 @@
 import type { Metadata } from 'next'
-import { Cardo, Inter } from 'next/font/google'
+import { DM_Sans } from 'next/font/google'
 import './globals.css'
 import { I18nProvider } from '@/lib/i18n'
+import { SYNERGI_BRAND } from '@/lib/synergi-brand'
 
-const cardo = Cardo({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-cardo',
-})
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['400', '500', '700'],
+  variable: '--font-dm-sans',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'Anclora Synergi',
-  description: 'Independent partner portal for the curated Anclora ecosystem',
+  title: SYNERGI_BRAND.name,
+  description: SYNERGI_BRAND.description,
   icons: {
-    icon: '/brand/logo-anclora-synergi.png',
+    icon: [
+      { url: SYNERGI_BRAND.logoPath, type: 'image/png' },
+      { url: SYNERGI_BRAND.faviconPath, type: 'image/x-icon' },
+    ],
+    shortcut: SYNERGI_BRAND.faviconPath,
+    apple: SYNERGI_BRAND.logoPath,
   },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body className={`${cardo.variable} ${inter.variable}`}>
+      <body className={dmSans.variable}>
         <I18nProvider>{children}</I18nProvider>
       </body>
     </html>

@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { KeyRound, Laptop2, Mail, MoonStar, ShieldCheck, Sparkles, SunMedium } from 'lucide-react'
+import { SynergiBrandMark } from '@/components/synergi/SynergiBrandMark'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
+import { SYNERGI_BRAND } from '@/lib/synergi-brand'
 
 export function SynergiLoginPage({
   prefillEmail = '',
@@ -135,16 +136,10 @@ export function SynergiLoginPage({
 
           <div className="synergi-brand">
             <div className="synergi-brand-badge">
-              <Image
-                src="/brand/logo-anclora-synergi.png"
-                alt="Anclora Synergi"
-                width={40}
-                height={40}
-                className="synergi-brand-logo"
-              />
+              <SynergiBrandMark size={40} className="synergi-brand-logo" />
             </div>
             <div>
-              <p className="synergi-brand-name">ANCLORA SYNERGI</p>
+              <p className="synergi-brand-name">{SYNERGI_BRAND.name.toUpperCase()}</p>
               <p className="synergi-brand-line">{t('brandLine')}</p>
             </div>
           </div>

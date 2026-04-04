@@ -1,70 +1,70 @@
 :root {
-  --synergi-ink: #0f0717;
-  --synergi-navy: #1d0f2b;
-  --synergi-deep: #28173a;
-  --synergi-slate: #3d2758;
-  --synergi-surface: rgba(23, 11, 34, 0.78);
-  --synergi-panel-bg: linear-gradient(180deg, rgba(31, 16, 48, 0.92) 0%, rgba(18, 10, 27, 0.9) 100%);
-  --synergi-panel-soft: rgba(23, 11, 35, 0.62);
-  --synergi-summary-bg: rgba(8, 31, 40, 0.6);
-  --synergi-highlight-bg: linear-gradient(135deg, rgba(64, 31, 100, 0.58) 0%, rgba(24, 11, 39, 0.52) 100%);
-  --synergi-guide-bg: linear-gradient(180deg, rgba(32, 16, 50, 0.76) 0%, rgba(18, 10, 29, 0.62) 100%);
-  --synergi-input-bg: rgba(29, 14, 43, 0.42);
-  --synergi-select-bg: rgba(10, 48, 58, 0.42);
-  --synergi-check-bg: rgba(29, 14, 43, 0.28);
-  --synergi-notice-bg: rgba(77, 36, 115, 0.2);
-  --synergi-hero-pill-bg: rgba(22, 12, 35, 0.5);
-  --synergi-champagne: #bf8cff;
-  --synergi-champagne-soft: #e5c9ff;
-  --synergi-cyan: #b8a8ff;
-  --synergi-cream: #f7efff;
-  --synergi-muted: rgba(247, 239, 255, 0.72);
-  --synergi-subtle: rgba(247, 239, 255, 0.16);
-  --font-display: var(--font-cardo), serif;
-  --font-body: var(--font-inter), sans-serif;
+  --synergi-ink: #130d1c;
+  --synergi-navy: #1c162a;
+  --synergi-deep: #291b39;
+  --synergi-slate: #5b3a73;
+  --synergi-surface: rgba(26, 18, 38, 0.78);
+  --synergi-panel-bg: linear-gradient(180deg, rgba(28, 20, 41, 0.94) 0%, rgba(16, 12, 25, 0.92) 100%);
+  --synergi-panel-soft: rgba(26, 17, 39, 0.62);
+  --synergi-summary-bg: rgba(22, 18, 32, 0.6);
+  --synergi-highlight-bg: linear-gradient(135deg, rgba(140, 90, 180, 0.58) 0%, rgba(192, 120, 96, 0.28) 100%);
+  --synergi-guide-bg: linear-gradient(180deg, rgba(33, 21, 47, 0.76) 0%, rgba(20, 13, 30, 0.64) 100%);
+  --synergi-input-bg: rgba(23, 15, 35, 0.42);
+  --synergi-select-bg: rgba(24, 17, 36, 0.42);
+  --synergi-check-bg: rgba(24, 15, 34, 0.28);
+  --synergi-notice-bg: rgba(51, 34, 76, 0.2);
+  --synergi-hero-pill-bg: rgba(27, 18, 39, 0.5);
+  --synergi-champagne: #8c5ab4;
+  --synergi-champagne-soft: #c7a4e4;
+  --synergi-cyan: #c07860;
+  --synergi-cream: #f7f1fb;
+  --synergi-muted: rgba(247, 241, 251, 0.72);
+  --synergi-subtle: rgba(247, 241, 251, 0.16);
+  --font-display: var(--font-dm-sans), system-ui, sans-serif;
+  --font-body: var(--font-dm-sans), system-ui, sans-serif;
 }
 
 html[data-theme='light'] {
-  --synergi-ink: #f7efff;
-  --synergi-navy: #f6edff;
-  --synergi-deep: #efe3ff;
-  --synergi-slate: #e3d0ff;
-  --synergi-surface: rgba(255, 250, 255, 0.88);
-  --synergi-panel-bg: linear-gradient(180deg, rgba(255, 250, 255, 0.96) 0%, rgba(242, 234, 255, 0.94) 100%);
-  --synergi-panel-soft: rgba(250, 245, 255, 0.92);
-  --synergi-summary-bg: rgba(245, 237, 255, 0.9);
-  --synergi-highlight-bg: linear-gradient(135deg, rgba(234, 218, 255, 0.92) 0%, rgba(248, 240, 255, 0.94) 100%);
-  --synergi-guide-bg: linear-gradient(180deg, rgba(250, 245, 255, 0.96) 0%, rgba(239, 229, 255, 0.94) 100%);
-  --synergi-input-bg: rgba(255, 251, 255, 0.96);
-  --synergi-select-bg: rgba(255, 251, 255, 0.96);
-  --synergi-check-bg: rgba(248, 241, 255, 0.94);
-  --synergi-notice-bg: rgba(237, 228, 252, 0.88);
-  --synergi-hero-pill-bg: rgba(241, 232, 255, 0.92);
-  --synergi-champagne: #7d3fd2;
-  --synergi-champagne-soft: #5b2ba0;
-  --synergi-cyan: #8b55d8;
-  --synergi-cream: #170923;
-  --synergi-muted: rgba(23, 9, 35, 0.72);
-  --synergi-subtle: rgba(23, 9, 35, 0.1);
-  --synergi-toggle-bg: rgba(91, 43, 160, 0.08);
-  --synergi-toggle-border: rgba(91, 43, 160, 0.14);
-  --synergi-toggle-text: rgba(23, 9, 35, 0.58);
-  --synergi-review-chip-bg: rgba(255, 255, 255, 0.94);
-  --synergi-review-chip-border: rgba(91, 43, 160, 0.16);
-  --synergi-review-chip-active-bg: rgba(139, 85, 216, 0.12);
-  --synergi-review-card-bg: rgba(255, 252, 255, 0.92);
-  --synergi-review-card-border: rgba(91, 43, 160, 0.12);
+  --synergi-ink: #f5efea;
+  --synergi-navy: #f4ecff;
+  --synergi-deep: #efe4ff;
+  --synergi-slate: #d8b7f0;
+  --synergi-surface: rgba(255, 251, 247, 0.88);
+  --synergi-panel-bg: linear-gradient(180deg, rgba(255, 251, 247, 0.96) 0%, rgba(244, 237, 229, 0.94) 100%);
+  --synergi-panel-soft: rgba(250, 244, 237, 0.92);
+  --synergi-summary-bg: rgba(244, 236, 229, 0.9);
+  --synergi-highlight-bg: linear-gradient(135deg, rgba(235, 223, 246, 0.92) 0%, rgba(245, 237, 231, 0.94) 100%);
+  --synergi-guide-bg: linear-gradient(180deg, rgba(250, 245, 240, 0.96) 0%, rgba(240, 230, 222, 0.94) 100%);
+  --synergi-input-bg: rgba(255, 251, 247, 0.96);
+  --synergi-select-bg: rgba(255, 251, 247, 0.96);
+  --synergi-check-bg: rgba(248, 241, 237, 0.94);
+  --synergi-notice-bg: rgba(240, 231, 244, 0.88);
+  --synergi-hero-pill-bg: rgba(241, 232, 239, 0.92);
+  --synergi-champagne: #7d49c5;
+  --synergi-champagne-soft: #9f7ad8;
+  --synergi-cyan: #b66c56;
+  --synergi-cream: #1c162a;
+  --synergi-muted: rgba(28, 22, 42, 0.72);
+  --synergi-subtle: rgba(28, 22, 42, 0.1);
+  --synergi-toggle-bg: rgba(125, 73, 197, 0.08);
+  --synergi-toggle-border: rgba(125, 73, 197, 0.14);
+  --synergi-toggle-text: rgba(28, 22, 42, 0.58);
+  --synergi-review-chip-bg: rgba(255, 252, 248, 0.94);
+  --synergi-review-chip-border: rgba(125, 73, 197, 0.16);
+  --synergi-review-chip-active-bg: rgba(184, 108, 86, 0.12);
+  --synergi-review-card-bg: rgba(255, 252, 248, 0.92);
+  --synergi-review-card-border: rgba(125, 73, 197, 0.12);
   --synergi-review-card-shadow: 0 16px 34px rgba(77, 47, 109, 0.08);
 }
 
 :root {
   --synergi-toggle-bg: color-mix(in srgb, var(--synergi-cream) 8%, transparent);
-  --synergi-toggle-border: rgba(191, 140, 255, 0.14);
-  --synergi-toggle-text: rgba(247, 241, 231, 0.58);
-  --synergi-review-chip-bg: rgba(8, 31, 40, 0.56);
-  --synergi-review-chip-border: rgba(212, 175, 55, 0.18);
-  --synergi-review-chip-active-bg: rgba(212, 175, 55, 0.18);
-  --synergi-review-card-bg: rgba(8, 31, 40, 0.52);
+  --synergi-toggle-border: rgba(140, 90, 180, 0.18);
+  --synergi-toggle-text: rgba(247, 241, 251, 0.58);
+  --synergi-review-chip-bg: rgba(18, 12, 27, 0.56);
+  --synergi-review-chip-border: rgba(192, 120, 96, 0.18);
+  --synergi-review-chip-active-bg: rgba(140, 90, 180, 0.18);
+  --synergi-review-card-bg: rgba(18, 12, 27, 0.52);
   --synergi-review-card-border: rgba(247, 241, 231, 0.1);
   --synergi-review-card-shadow: none;
 }
@@ -81,18 +81,18 @@ body {
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(191, 140, 255, 0.18), transparent 30%),
-    radial-gradient(circle at top right, rgba(229, 201, 255, 0.14), transparent 24%),
-    linear-gradient(180deg, #09050f 0%, #140a1e 46%, #0d0715 100%);
+    radial-gradient(circle at top left, rgba(140, 90, 180, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(192, 120, 96, 0.14), transparent 24%),
+    linear-gradient(180deg, #0d0813 0%, #171022 46%, #110b18 100%);
   color: var(--synergi-cream);
   font-family: var(--font-body);
 }
 
 html[data-theme='light'] body {
   background:
-    radial-gradient(circle at top left, rgba(191, 140, 255, 0.12), transparent 30%),
-    radial-gradient(circle at top right, rgba(229, 201, 255, 0.12), transparent 24%),
-    linear-gradient(180deg, #faf6ff 0%, #f3ebff 46%, #eee5fb 100%);
+    radial-gradient(circle at top left, rgba(140, 90, 180, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(192, 120, 96, 0.12), transparent 24%),
+    linear-gradient(180deg, #fbf8f3 0%, #f3e9de 46%, #ece0d3 100%);
 }
 
 a {
@@ -232,8 +232,8 @@ input {
 }
 
 .synergi-language button.is-active {
-  background: linear-gradient(135deg, #8b55d8 0%, #f2d9ff 46%, #b97fff 56%, #7035bf 100%);
-  color: #13081d;
+  background: linear-gradient(135deg, #8c5ab4 0%, #f1e3fb 46%, #c07860 56%, #6d3f90 100%);
+  color: #150f20;
 }
 
 .synergi-grid {
@@ -597,16 +597,16 @@ input {
   overflow: hidden;
   min-height: 58px;
   padding: 0 28px;
-  border: 1px solid rgba(191, 140, 255, 0.55);
+  border: 1px solid rgba(140, 90, 180, 0.55);
   border-radius: 999px;
-  background: linear-gradient(135deg, #8d56dc 0%, #f1ddff 44%, #bc8dff 52%, #f6ecff 57%, #6e35bf 100%);
-  color: #170923;
+  background: linear-gradient(135deg, #8c5ab4 0%, #f3e7fb 44%, #c07860 52%, #f5ece6 57%, #6d3f90 100%);
+  color: #160f20;
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 18px 38px rgba(138, 86, 220, 0.24);
+  box-shadow: 0 18px 38px rgba(140, 90, 180, 0.24);
 }
 
 .synergi-button::before {
@@ -1347,9 +1347,9 @@ input {
   min-height: 38px;
   padding: 0 16px;
   border-radius: 999px;
-  border: 1px solid rgba(144, 206, 214, 0.2);
-  background: rgba(10, 36, 48, 0.72);
-  color: var(--synergi-cyan);
+  border: 1px solid rgba(140, 90, 180, 0.2);
+  background: rgba(22, 15, 34, 0.72);
+  color: var(--synergi-champagne-soft);
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1656,9 +1656,9 @@ input {
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(144, 206, 214, 0.18);
-  background: rgba(8, 31, 40, 0.76);
-  color: var(--synergi-cyan);
+  border: 1px solid rgba(192, 120, 96, 0.18);
+  background: rgba(18, 12, 27, 0.76);
+  color: var(--synergi-champagne);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;

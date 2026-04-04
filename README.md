@@ -46,3 +46,15 @@ Read these before changing interface components:
 3. `docs/standards/UI_MOTION_CONTRACT.md`
 4. `docs/standards/MODAL_CONTRACT.md`
 5. `docs/standards/LOCALIZATION_CONTRACT.md`
+
+## Branding canónico
+
+- Familia: `Premium`
+- Tipografía base: `DM Sans`
+- Accent principal: `#8C5AB4`
+- Borde de icono: cobre `#C07860`
+- Interior de icono: `#1C162A`
+- Favicon esperado: prefijo `synergi_`
+- Estado de activos finales: pendientes de sustitución por parte del usuario
+
+El repo ya queda preparado estructuralmente para el branding premium. Cuando lleguen los activos finales, solo habrá que reemplazar los archivos de marca sin rehacer el wiring.

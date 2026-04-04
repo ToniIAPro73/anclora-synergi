@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ClipboardCheck, RefreshCcw, ShieldCheck, Sparkles } from 'lucide-react'
+import { SynergiBrandMark } from '@/components/synergi/SynergiBrandMark'
 import { SynergiUiToggles } from '@/components/synergi/SynergiUiToggles'
 import { buildAncloraGroupHref, useI18n } from '@/lib/i18n'
 import { PartnerOperationsConsole } from '@/components/synergi/PartnerOperationsConsole'
+import { SYNERGI_BRAND } from '@/lib/synergi-brand'
 import { PartnerAssetsConsole } from '@/components/synergi/PartnerAssetsConsole'
 
 type PartnerAdmissionStatus = 'submitted' | 'under_review' | 'accepted' | 'rejected'
@@ -268,16 +269,10 @@ export function PartnerAdmissionsReviewPage() {
 
           <div className="synergi-brand">
             <div className="synergi-brand-badge">
-              <Image
-                src="/brand/logo-anclora-synergi.png"
-                alt="Anclora Synergi"
-                width={40}
-                height={40}
-                className="synergi-brand-logo"
-              />
+              <SynergiBrandMark size={40} className="synergi-brand-logo" />
             </div>
             <div>
-              <p className="synergi-brand-name">ANCLORA SYNERGI</p>
+              <p className="synergi-brand-name">{SYNERGI_BRAND.name.toUpperCase()}</p>
               <p className="synergi-brand-line">{t('reviewBrandLine')}</p>
             </div>
           </div>
