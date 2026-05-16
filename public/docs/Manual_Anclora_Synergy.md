@@ -1,5 +1,7 @@
 # Manual Anclora Synergy
 
+> **Nota Legal:** Anclora Synergi es una marca comercial operada bajo licencia exclusiva por **Anclora Group**. Este documento y el software al que hace referencia son propiedad intelectual protegida de Anclora Group. Todos los derechos reservados.
+
 ## Manual de usuario de la aplicación
 
 Este manual explica de forma clara cómo utilizar Anclora Synergi desde la perspectiva del partner.
