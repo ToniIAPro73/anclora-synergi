@@ -1,6 +1,6 @@
 export const SYNERGI_BRAND = {
   name: 'Anclora Synergi',
-  description: 'Independent partner portal for the curated Anclora ecosystem.',
+  description: 'Anclora Synergi es una marca comercial operada bajo licencia exclusiva por Anclora Group. Portal independiente para partners del ecosistema curado de Anclora.',
   logoPath: '/brand/logo-anclora-synergi.png',
   faviconPath: '/favicon.ico',
   premiumAccent: '#8C5AB4',
