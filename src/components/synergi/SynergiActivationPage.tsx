@@ -4,10 +4,11 @@ import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { buildPrivateEstatesHref, useI18n } from '@/lib/i18n'
 import { SynergiBrandMark } from '@/components/synergi/SynergiBrandMark'
+import { SynergiGlobalPreferencesToggle } from '@/components/synergi/SynergiUiToggles'
 import { SYNERGI_BRAND } from '@/lib/synergi-brand'
 
 export function SynergiActivationPage() {
-  const { language, setLanguage, t } = useI18n()
+  const { language, t } = useI18n()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [remember, setRemember] = useState(true)
@@ -57,18 +58,7 @@ export function SynergiActivationPage() {
             </div>
           </div>
 
-          <div className="synergi-language synergi-language-toggle">
-            {(['es', 'en', 'de'] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={item === language ? 'is-active' : ''}
-                onClick={() => setLanguage(item)}
-              >
-                {item.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <SynergiGlobalPreferencesToggle />
         </header>
 
         <div className="synergi-review-login-wrap">
