@@ -207,7 +207,9 @@ input {
 
 .synergi-language {
   display: inline-flex;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
   padding: 4px;
   border-radius: 999px;
   background: var(--synergi-toggle-bg);
@@ -217,23 +219,43 @@ input {
 .synergi-language button {
   border: 0;
   border-radius: 999px;
-  min-height: 42px;
-  padding: 9px 15px;
+  width: 42px;
+  min-width: 42px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
   background: transparent;
   color: var(--synergi-toggle-text);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.14em;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.synergi-theme-toggle button {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
 }
 
 .synergi-language button svg {
   display: block;
 }
 
+.synergi-language button:hover,
+.synergi-language button:focus-visible {
+  background: color-mix(in srgb, var(--synergi-cream) 8%, transparent);
+  color: var(--synergi-cream);
+}
+
 .synergi-language button.is-active {
-  background: linear-gradient(135deg, #8c5ab4 0%, #f1e3fb 46%, #c07860 56%, #6d3f90 100%);
+  background: var(--synergi-champagne);
   color: #150f20;
+  box-shadow: 0 8px 18px rgba(125, 73, 197, 0.22);
 }
 
 .synergi-grid {

@@ -57,7 +57,7 @@ export function SynergiActivationPage() {
             </div>
           </div>
 
-          <div className="synergi-language">
+          <div className="synergi-language synergi-language-toggle">
             {(['es', 'en', 'de'] as const).map((item) => (
               <button
                 key={item}
