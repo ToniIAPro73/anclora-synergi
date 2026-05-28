@@ -145,7 +145,7 @@ export function SynergiLoginPage({
           </div>
 
           <div className="synergi-topbar-controls">
-            <div className="synergi-language">
+            <div className="synergi-language synergi-theme-toggle">
               {([
                 { value: 'dark', label: 'Tema oscuro' },
                 { value: 'light', label: 'Tema claro' },
@@ -166,7 +166,7 @@ export function SynergiLoginPage({
                 )
               })}
             </div>
-            <div className="synergi-language">
+            <div className="synergi-language synergi-language-toggle">
               {(['es', 'en', 'de'] as const).map((item) => (
                 <button
                   key={item}
