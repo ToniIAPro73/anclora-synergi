@@ -258,6 +258,152 @@ input {
   box-shadow: 0 8px 18px rgba(125, 73, 197, 0.22);
 }
 
+.synergi-preferences-wrap {
+  position: relative;
+}
+
+.synergi-preferences-trigger {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--synergi-toggle-border);
+  background: var(--synergi-toggle-bg);
+  color: var(--synergi-toggle-text);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.synergi-preferences-trigger:hover,
+.synergi-preferences-trigger:focus-visible {
+  border-color: rgba(140, 90, 180, 0.34);
+  color: var(--synergi-cream);
+}
+
+.synergi-preferences-trigger svg {
+  flex: 0 0 auto;
+}
+
+.synergi-preferences-trigger svg:last-child {
+  transition: transform 160ms ease;
+}
+
+.synergi-preferences-trigger svg:last-child.is-open {
+  transform: rotate(180deg);
+}
+
+.synergi-preferences-language {
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--synergi-champagne-soft);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.synergi-preferences-token {
+  color: var(--synergi-cream);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.synergi-preferences-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 30;
+  width: min(22rem, calc(100vw - 2rem));
+  padding: 16px;
+  border-radius: 24px;
+  border: 1px solid var(--synergi-toggle-border);
+  background: var(--synergi-panel-bg);
+  box-shadow: 0 24px 70px rgba(4, 2, 8, 0.42);
+}
+
+.synergi-preferences-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.synergi-preferences-panel-head p {
+  margin: 0 0 4px;
+  color: var(--synergi-champagne-soft);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.synergi-preferences-panel-head h2 {
+  margin: 0;
+  color: var(--synergi-cream);
+  font-size: 1rem;
+}
+
+.synergi-preferences-panel-head button {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--synergi-toggle-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--synergi-toggle-text);
+  cursor: pointer;
+}
+
+.synergi-preferences-field {
+  display: block;
+  margin-top: 12px;
+}
+
+.synergi-preferences-field > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--synergi-muted);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.synergi-preferences-field select {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--synergi-toggle-border);
+  background: var(--synergi-input-bg);
+  color: var(--synergi-cream);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.synergi-preferences-save {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--synergi-champagne);
+  color: #150f20;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
 .synergi-grid {
   display: grid;
   grid-template-columns: 1.06fr 0.94fr;
