@@ -5,14 +5,6 @@ import { ChevronDown, Globe, Laptop2, MoonStar, SunMedium, X } from 'lucide-reac
 import { useI18n, type Language } from '@/lib/i18n'
 
 type SynergiTheme = 'dark' | 'light' | 'system'
-type SynergiCurrency = 'EUR' | 'USD' | 'GBP' | 'CHF'
-type SynergiUnitSystem = 'metric' | 'imperial'
-
-const CURRENCIES: SynergiCurrency[] = ['EUR', 'USD', 'GBP', 'CHF']
-const UNITS: { code: SynergiUnitSystem; symbol: string }[] = [
-  { code: 'metric', symbol: 'm²' },
-  { code: 'imperial', symbol: 'Sqft' },
-]
 
 const LANGUAGE_LABELS = {
   es: 'Español',
@@ -25,40 +17,22 @@ const preferenceCopy = {
     trigger: 'Preferencias globales',
     title: 'Preferencias',
     language: 'Idioma',
-    currency: 'Moneda',
-    units: 'Unidades de medida',
     close: 'Cerrar preferencias',
     save: 'Guardar y cerrar',
-    unitLabels: {
-      metric: 'Metro cuadrado - m² / Hectárea - ha',
-      imperial: 'Pie cuadrado - ft² / Acre - ac',
-    },
   },
   en: {
     trigger: 'Global preferences',
     title: 'Preferences',
     language: 'Language',
-    currency: 'Currency',
-    units: 'Measure units',
     close: 'Close preferences',
     save: 'Save and close',
-    unitLabels: {
-      metric: 'Square meter - m² / Hectare - ha',
-      imperial: 'Square foot - ft² / Acre - ac',
-    },
   },
   de: {
     trigger: 'Globale Einstellungen',
     title: 'Präferenzen',
     language: 'Sprache',
-    currency: 'Währung',
-    units: 'Maßeinheiten',
     close: 'Einstellungen schließen',
     save: 'Speichern und schließen',
-    unitLabels: {
-      metric: 'Quadratmeter - m² / Hektar - ha',
-      imperial: 'Quadratfuß - ft² / Acre - ac',
-    },
   },
 } as const
 
@@ -131,22 +105,7 @@ export function SynergiGlobalPreferencesToggle() {
   const { language, setLanguage } = useI18n()
   const panelRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(false)
-  const [currency, setCurrency] = useState<SynergiCurrency>(() => {
-    if (typeof window === 'undefined') return 'EUR'
-    const storedCurrency = window.localStorage.getItem('anclora-synergi-currency') as SynergiCurrency | null
-    return storedCurrency && CURRENCIES.includes(storedCurrency) ? storedCurrency : 'EUR'
-  })
-  const [unitSystem, setUnitSystem] = useState<SynergiUnitSystem>(() => {
-    if (typeof window === 'undefined') return 'metric'
-    return window.localStorage.getItem('anclora-synergi-units') === 'imperial' ? 'imperial' : 'metric'
-  })
   const copy = preferenceCopy[language]
-  const unit = UNITS.find((item) => item.code === unitSystem) || UNITS[0]
-
-  useEffect(() => {
-    window.localStorage.setItem('anclora-synergi-currency', currency)
-    window.localStorage.setItem('anclora-synergi-units', unitSystem)
-  }, [currency, unitSystem])
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -175,8 +134,6 @@ export function SynergiGlobalPreferencesToggle() {
       >
         <Globe size={16} strokeWidth={1.8} />
         <span className="synergi-preferences-language">{LANGUAGE_LABELS[language]}</span>
-        <span className="synergi-preferences-token">{currency}</span>
-        <span className="synergi-preferences-token">{unit.symbol}</span>
         <ChevronDown size={15} strokeWidth={1.8} className={open ? 'is-open' : ''} />
       </button>
 
@@ -197,24 +154,6 @@ export function SynergiGlobalPreferencesToggle() {
             <select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
               {(['es', 'en', 'de'] as const).map((item) => (
                 <option key={item} value={item}>{LANGUAGE_LABELS[item]}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="synergi-preferences-field">
-            <span>{copy.currency}</span>
-            <select value={currency} onChange={(event) => setCurrency(event.target.value as SynergiCurrency)}>
-              {CURRENCIES.map((item) => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="synergi-preferences-field">
-            <span>{copy.units}</span>
-            <select value={unitSystem} onChange={(event) => setUnitSystem(event.target.value as SynergiUnitSystem)}>
-              {UNITS.map((item) => (
-                <option key={item.code} value={item.code}>{copy.unitLabels[item.code]}</option>
               ))}
             </select>
           </label>
