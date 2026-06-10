@@ -1,0 +1,71 @@
+name: Promote development to staging
+
+on:
+  workflow_dispatch:
+
+env:
+  NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+  DATABASE_URL: "postgresql://user:password@localhost:5432/synergi_ci"
+  SYNERGI_ADMIN_USERNAME: "ci-admin"
+  SYNERGI_ADMIN_PASSWORD: "ci-password-placeholder"
+  SYNERGI_ADMIN_SESSION_SECRET: "ci-session-secret-placeholder"
+  NEXT_PUBLIC_RECAPTCHA_SITE_KEY: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+  RECAPTCHA_SECRET_KEY: "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+  RECAPTCHA_VERIFY_URL: "https://www.google.com/recaptcha/api/siteverify"
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Checkout staging
+        run: git checkout staging
+
+      - name: Merge development
+        run: git merge --no-ff origin/development -m "chore: merge development to staging [ci-skip]"
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Push staging
+        if: success()
+        run: git push origin staging
+
+      - name: Notify
+        if: success()
+        run: echo "✓ Successfully promoted development to staging"
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "✗ Promotion failed"
+          echo "Merge may have conflicts. Resolve manually."
+        continue-on-error: true
