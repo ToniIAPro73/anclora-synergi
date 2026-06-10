@@ -1,0 +1,87 @@
+name: Promote staging to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (e.g., v0.2.0)"
+        required: false
+
+env:
+  NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+  DATABASE_URL: "postgresql://user:password@localhost:5432/synergi_ci"
+  SYNERGI_ADMIN_USERNAME: "ci-admin"
+  SYNERGI_ADMIN_PASSWORD: "ci-password-placeholder"
+  SYNERGI_ADMIN_SESSION_SECRET: "ci-session-secret-placeholder"
+  NEXT_PUBLIC_RECAPTCHA_SITE_KEY: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+  RECAPTCHA_SECRET_KEY: "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+  RECAPTCHA_VERIFY_URL: "https://www.google.com/recaptcha/api/siteverify"
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Checkout production
+        run: git checkout production
+
+      - name: Merge staging
+        run: git merge --no-ff origin/staging -m "chore: merge staging to production [ci-skip]"
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Create tag
+        if: github.event.inputs.version
+        run: git tag -a "${{ github.event.inputs.version }}" -m "Release ${{ github.event.inputs.version }}"
+
+      - name: Push production
+        if: success()
+        run: git push origin production
+
+      - name: Push tag
+        if: success() && github.event.inputs.version
+        run: git push origin "${{ github.event.inputs.version }}"
+
+      - name: Success
+        if: success()
+        run: |
+          echo "✓ Successfully promoted staging to production"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Vercel will deploy automatically."
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "✗ Promotion failed"
+          echo "Check logs above for details."
+        continue-on-error: true
