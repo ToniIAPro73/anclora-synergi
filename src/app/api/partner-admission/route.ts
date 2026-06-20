@@ -1,3 +1,4 @@
+import { after } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPartnerAdmission } from '@/lib/partner-admissions-store'
 import {
@@ -6,6 +7,10 @@ import {
   getRequestUserAgent,
   recordSynergiAuditEvent,
 } from '@/lib/synergi-security'
+import {
+  buildSynergiAdmissionIntakePayload,
+  forwardSynergiAdmissionToNexus,
+} from '@/lib/nexus-intake-forward'
 
 type PartnerAdmissionPayload = {
   name?: string
@@ -224,6 +229,26 @@ export async function POST(request: NextRequest) {
       captchaHostname: verification.hostname || null,
     },
   })
+
+  // Forward to Nexus with Anclora Intake Contract v1 (fire-and-forget)
+  const nexusPayload = buildSynergiAdmissionIntakePayload({
+    admissionId: admission.id,
+    fullName: name,
+    email,
+    companyName: payload.brand?.trim() || null,
+    serviceCategory: 'professional',
+    serviceSummary: [speciality, vision].filter(Boolean).join(' | ').slice(0, 3000),
+    submissionLanguage,
+    submissionSource: 'synergi',
+    privacyAccepted: true,
+  })
+  after(() =>
+    forwardSynergiAdmissionToNexus(nexusPayload, {
+      nexusBaseUrl: process.env.NEXUS_BASE_URL,
+      nexusApiKey: process.env.NEXUS_INTERNAL_API_KEY,
+      admissionId: admission.id,
+    })
+  )
 
   return NextResponse.json({
     ok: true,
