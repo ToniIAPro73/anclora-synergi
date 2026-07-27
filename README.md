@@ -1,60 +1,82 @@
+<!-- markdownlint-disable MD001 MD013 MD033 MD041 MD060 -->
+
+<div align="center">
+
+<img src="./public/brand/logo-anclora-private-estates.png" alt="Anclora Synergi" width="120" />
+
 # Anclora Synergi
 
-Independent partner portal for the curated Anclora ecosystem.
+### Repositorio interno del ecosistema Anclora para operaciones de familia premium
 
-Current scope:
-- Next.js app scaffold
-- Public mixed entry screen with partnership request plus approved-partner access
-- Real partner login with first-access activation and private workspace entry
-- Visual language derived from Private Estates, with a distinct Synergi identity
-- Server-side partner admission route with reCAPTCHA verification and Neon persistence
-- Internal review panel with decision workflow, invite-code generation and admin protection
-- Transactional email layer for acceptance, rejection and credential reissue
+**Español** · [English](./README.en.md)
 
-Next steps:
-- expand the private workspace with partner-facing assets and referrals
-- harden the internal review area with richer audit and role controls
-- point Private Estates Partner Portal to the public Synergi root URL
+<br />
 
-Required environment variables:
-- `NEXT_PUBLIC_PRIVATE_ESTATES_PARTNER_ENTRY_URL`
-- `NEXT_PUBLIC_PRIVATE_ESTATES_URL`
-- `NEXT_PUBLIC_APP_URL`
-- `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`
-- `RECAPTCHA_SECRET_KEY`
-- `RECAPTCHA_VERIFY_URL`
-- `DATABASE_URL`
-- `SYNERGI_ADMIN_USERNAME`
-- `SYNERGI_ADMIN_PASSWORD`
-- `SYNERGI_ADMIN_SESSION_SECRET`
-- `SYNERGI_PARTNER_SESSION_SECRET`
-- `USER_TEXT`
-- `PASS_TEXT`
-- `UTILIZAR_USER_TEXT`
-- `SYNERGI_EMAIL_PROVIDER`
-- `RESEND_API_KEY`
-- `SYNERGI_EMAIL_FROM`
-- `SYNERGI_EMAIL_REPLY_TO`
-- `SYNERGI_SUPPORT_EMAIL`
+![Anclora](https://img.shields.io/badge/Anclora-ecosystem-111827)
+![Documentation](https://img.shields.io/badge/documentation-premium-BFA46A)
+![Languages](https://img.shields.io/badge/languages-ES%20%7C%20EN-047857)
 
-## UX/UI contracts
+</div>
 
-Read these before changing interface components:
+---
 
-1. `docs/standards/ANCLORA_ECOSYSTEM_CONTRACT_GROUPS.md`
-2. `docs/standards/ANCLORA_PREMIUM_APP_CONTRACT.md`
-3. `docs/standards/UI_MOTION_CONTRACT.md`
-4. `docs/standards/MODAL_CONTRACT.md`
-5. `docs/standards/LOCALIZATION_CONTRACT.md`
+> [!IMPORTANT]
+> Repositorio interno del ecosistema Anclora. No publicar detalles operativos, credenciales,
+> datos reales ni logica sensible fuera de los canales autorizados.
 
-## Branding canónico
+## Vista rapida
 
-- Familia: `Premium`
-- Tipografía base: `DM Sans`
-- Accent principal: `#8C5AB4`
-- Borde de icono: cobre `#C07860`
-- Interior de icono: `#1C162A`
-- Favicon esperado: prefijo `synergi_`
-- Estado de activos finales: pendientes de sustitución por parte del usuario
+| Area | Definicion |
+| --- | --- |
+| Proposito | Repositorio interno del ecosistema Anclora para operaciones de familia premium |
+| Familia | `premium` |
+| Visibilidad | `private` |
+| Rol | Repositorio de trabajo interno |
 
-El repo ya queda preparado estructuralmente para el branding premium. Cuando lleguen los activos finales, solo habrá que reemplazar los archivos de marca sin rehacer el wiring.
+## Flujo conceptual
+
+```text
+Contexto interno
+      ↓
+Configuracion y datos controlados
+      ↓
+Logica de producto
+      ↓
+Revision tecnica
+      ↓
+Entrega o soporte operativo
+```
+
+## Arranque local
+
+```bash
+npm install
+npm run dev
+```
+
+## Tecnologia
+
+| Area | Detalle |
+| --- | --- |
+| Next.js | Detectado en el repositorio |
+| React | Detectado en el repositorio |
+| TypeScript | Detectado en el repositorio |
+
+## Documentacion
+
+- [Documentacion](./docs)
+
+## Gobernanza
+
+- Producto canonico: `anclora-synergi`
+- Boveda: `/mnt/c/Users/antonio.ballesterosa/Desktop/Proyectos/Boveda-Anclora`
+- Contratos: `contracts/` y `docs/governance/`
+- Asset de marca: `presente`
+
+---
+
+<div align="center">
+
+### Anclora Group · Uso interno
+
+</div>
