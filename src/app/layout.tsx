@@ -16,11 +16,12 @@ export const metadata: Metadata = {
   description: SYNERGI_BRAND.description,
   icons: {
     icon: [
-      { url: SYNERGI_BRAND.logoPath, type: 'image/png' },
-      { url: SYNERGI_BRAND.faviconPath, type: 'image/x-icon' },
+      { url: SYNERGI_BRAND.faviconPath, sizes: 'any' },
+      { url: SYNERGI_BRAND.favicon32Path, type: 'image/png', sizes: '32x32' },
+      { url: SYNERGI_BRAND.favicon512Path, type: 'image/png', sizes: '512x512' },
     ],
     shortcut: SYNERGI_BRAND.faviconPath,
-    apple: SYNERGI_BRAND.logoPath,
+    apple: SYNERGI_BRAND.appleTouchIconPath,
   },
 }
 
