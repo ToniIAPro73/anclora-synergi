@@ -2,18 +2,20 @@
 
 <div align="center">
 
-<img src="./public/brand/logo-anclora-private-estates.png" alt="Anclora Synergi" width="120" />
+<img src="./public/brand/anclora-synergi.png" alt="Anclora Synergi" width="132" />
 
 # Anclora Synergi
 
-### Repositorio interno del ecosistema Anclora para operaciones de familia premium
+### Premium coordination for ecosystem synergies and collaborations
+
+Premium product with its own editorial pattern for managing collaborations and synergies between entities in the Anclora ecosystem.
 
 [Español](./README.md) · **English**
 
 <br />
 
 ![Anclora](https://img.shields.io/badge/Anclora-ecosystem-111827)
-![Documentation](https://img.shields.io/badge/documentation-premium-BFA46A)
+![Category](https://img.shields.io/badge/category-Premium-C07860)
 ![Languages](https://img.shields.io/badge/languages-ES%20%7C%20EN-047857)
 
 </div>
@@ -21,62 +23,58 @@
 ---
 
 > [!IMPORTANT]
-> Internal Anclora ecosystem repository. Do not publish operational details, credentials,
-> real data or sensitive logic outside approved channels.
+> Internal Anclora ecosystem repository. Do not publish operational details, credentials, or sensitive logic outside authorized channels.
 
-## At a glance
+## What it is
 
-| Area | Definition |
-| --- | --- |
-| Purpose | Repositorio interno del ecosistema Anclora para operaciones de familia premium |
-| Family | `premium` |
-| Visibility | `private` |
-| Role | Internal working repository |
+Anclora Synergi is a premium ecosystem product with its own editorial pattern, focused on coordinating synergies and collaborations between Anclora entities and products.
 
-## Conceptual workflow
+## Category in the ecosystem
 
-```text
-Internal context
-      ↓
-Controlled configuration and data
-      ↓
-Product logic
-      ↓
-Technical review
-      ↓
-Delivery or operational support
-```
+| Field | Value |
+|---|---|
+| Category | Premium |
+| Brand accent | `#8C5AB4` |
+| Typography | DM Sans |
+| Canonical repository | `anclora-synergi` |
 
-## Local start
+## Key features
+
+- Coordination of collaborations between ecosystem entities
+- Controlled access with serverless database (Neon)
+- Interface with light/dark theme support
+
+## Technology stack
+
+| Area | Technology |
+|---|---|
+| Framework | Next.js, React |
+| Database | Neon (serverless PostgreSQL) |
+| UI | Lucide React |
+
+## Local setup
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Technology
+## Supported languages
 
-| Area | Detail |
-| --- | --- |
-| Next.js | Detected in repository |
-| React | Detected in repository |
-| TypeScript | Detected in repository |
+- Español (default)
+- English
 
-## Documentation
+## Documentation and governance
 
-- [Documentacion](./docs)
-
-## Governance
-
-- Canonical product: `anclora-synergi`
-- Vault: `/mnt/c/Users/antonio.ballesterosa/Desktop/Proyectos/Boveda-Anclora`
-- Contracts: `contracts/` and `docs/governance/`
-- Brand asset: `present`
+- Brand and governance contracts: [`docs/standards/`](./docs/standards/)
+- Anclora Vault (source of truth): `contracts/` and `docs/governance/`
 
 ---
 
 <div align="center">
 
-### Anclora Group · Internal use
+### Anclora Group
+
+Internal use.
 
 </div>
