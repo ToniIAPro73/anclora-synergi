@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import {
-  acceptPartnerAdmission,
   getPartnerAdmissionReviewBundle,
   updatePartnerAdmissionStatus,
   type PartnerAdmissionStatus,
 } from '@/lib/partner-admissions-store'
-import { sendPartnerAcceptedEmail, sendPartnerRejectedEmail } from '@/lib/synergi-email'
+import { sendPartnerRejectedEmail } from '@/lib/synergi-email'
 import { getRequestIp, getRequestUserAgent, recordSynergiAuditEvent } from '@/lib/synergi-security'
 
 const REVIEWABLE_STATUSES = new Set<Exclude<PartnerAdmissionStatus, 'submitted'>>([
@@ -92,55 +91,14 @@ export async function PATCH(
 
   try {
     if (payload.status === 'accepted') {
-      const accepted = await acceptPartnerAdmission({
-        admissionId: id,
-        reviewNotes: payload.reviewNotes,
-        decisionReason: payload.decisionReason,
-        handoffState: payload.handoffState,
-        priorityLabel: payload.priorityLabel,
-        assignedTo: payload.assignedTo,
-        reviewedBy: session.username,
-      })
-
-      if (!accepted) {
-        return NextResponse.json({ error: 'Partner admission not found.' }, { status: 404 })
-      }
-
-      await sendPartnerAcceptedEmail({
-        partnerName: accepted.account.full_name,
-        email: accepted.account.email,
-        companyName: accepted.account.company_name,
-        inviteCode: accepted.inviteCode,
-        launchUrl: accepted.launchUrl,
-      })
-
-      await recordSynergiAuditEvent({
-        eventType: 'admin_admission_accepted',
-        actorType: 'admin',
-        actorIdentifier: session.username,
-        actorRole: session.role,
-        endpoint: '/api/partner-admissions/[id]',
-        method: 'PATCH',
-        statusCode: 200,
-        subjectType: 'partner_admission',
-        subjectId: accepted.admission.id,
-        ipAddress,
-        userAgent,
-        details: {
-          decisionReason: payload.decisionReason || null,
-          handoffState: payload.handoffState || 'invite_issued',
-          priorityLabel: payload.priorityLabel || null,
-          assignedTo: payload.assignedTo || null,
+      return NextResponse.json(
+        {
+          error: 'LOCAL_APPROVAL_DEPRECATED',
+          message:
+            'Admission decisions and credential provisioning are managed exclusively by Anclora Nexus and Anclora Identity. Review and approve this request in Anclora Nexus.',
         },
-      })
-
-      return NextResponse.json({
-        ...accepted.admission,
-        invite_code: accepted.inviteCode,
-        launch_url: accepted.launchUrl,
-        partner_account: accepted.account,
-        partner_workspace: accepted.workspace,
-      })
+        { status: 409 }
+      )
     }
 
     const updated = await updatePartnerAdmissionStatus({

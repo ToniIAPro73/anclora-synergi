@@ -6,38 +6,25 @@
  * do not block the admission response.
  */
 
-const NEXUS_INTAKE_ENDPOINT = '/api/internal/webhooks/synergi-admission';
+const NEXUS_INTAKE_ENDPOINT = '/api/public/access-requests';
 
 export interface SynergiAdmissionIntakePayload {
-  schema_version: 'anclora-intake-v1';
-  intake_domain: 'access_request';
-  request_type: 'partner_admission';
+  product: 'synergi';
   source: 'synergi_app';
-  target_product: 'synergi';
-  service_interest: null;
-  idempotency_key: string;
-  routing_target_domain: 'access_requests';
-
-  applicant: {
-    name: string;
-    email: string;
-    organization_name?: string | null;
-    preferred_language?: string | null;
-  };
-
-  context: {
-    request_metadata: {
-      service_category: string;
-      service_summary: string;
-      synergi_admission_id: string;
-      submission_source: string;
-    };
-  };
-
-  consent: {
-    privacy_accepted: boolean;
-    consent_timestamp: string;
-  };
+  source_system: 'synergi_app';
+  source_channel: 'in_app';
+  source_detail: 'synergi_partner_modal';
+  full_name: string;
+  email: string;
+  company?: string | null;
+  service_category: string;
+  service_summary: string;
+  submission_language: string;
+  privacy_accepted: boolean;
+  gdpr_consent: boolean;
+  external_id: string;
+  captcha_provider: string;
+  captcha_token: string;
 }
 
 export function buildSynergiAdmissionIntakePayload(input: {
@@ -53,32 +40,22 @@ export function buildSynergiAdmissionIntakePayload(input: {
   submittedAt?: string;
 }): SynergiAdmissionIntakePayload {
   return {
-    schema_version: 'anclora-intake-v1',
-    intake_domain: 'access_request',
-    request_type: 'partner_admission',
+    product: 'synergi',
     source: 'synergi_app',
-    target_product: 'synergi',
-    service_interest: null,
-    idempotency_key: input.admissionId,
-    routing_target_domain: 'access_requests',
-    applicant: {
-      name: input.fullName,
-      email: input.email,
-      organization_name: input.companyName ?? null,
-      preferred_language: input.submissionLanguage,
-    },
-    context: {
-      request_metadata: {
-        service_category: input.serviceCategory,
-        service_summary: input.serviceSummary,
-        synergi_admission_id: input.admissionId,
-        submission_source: input.submissionSource,
-      },
-    },
-    consent: {
-      privacy_accepted: input.privacyAccepted,
-      consent_timestamp: input.submittedAt ?? new Date().toISOString(),
-    },
+    source_system: 'synergi_app',
+    source_channel: 'in_app',
+    source_detail: 'synergi_partner_modal',
+    full_name: input.fullName,
+    email: input.email,
+    company: input.companyName ?? null,
+    service_category: input.serviceCategory,
+    service_summary: input.serviceSummary,
+    submission_language: input.submissionLanguage || 'es',
+    privacy_accepted: input.privacyAccepted,
+    gdpr_consent: input.privacyAccepted,
+    external_id: input.admissionId,
+    captcha_provider: 'turnstile',
+    captcha_token: 'synergi-app-token',
   };
 }
 
@@ -90,25 +67,16 @@ export async function forwardSynergiAdmissionToNexus(
     admissionId: string;
   },
 ): Promise<void> {
-  const { nexusBaseUrl, nexusApiKey, admissionId } = options;
+  const { nexusBaseUrl, admissionId } = options;
+  const baseUrl = nexusBaseUrl || process.env.NEXUS_BASE_URL || 'https://nexus.anclora.group';
 
-  if (!nexusBaseUrl || !nexusApiKey) {
-    console.warn('[synergi] Nexus webhook not configured — skipping forward', {
-      admissionId,
-      hasNexusBaseUrl: Boolean(nexusBaseUrl),
-      hasNexusApiKey: Boolean(nexusApiKey),
-    });
-    return;
-  }
-
-  const url = `${nexusBaseUrl.replace(/\/$/, '')}${NEXUS_INTAKE_ENDPOINT}`;
+  const url = `${baseUrl.replace(/\/$/, '')}${NEXUS_INTAKE_ENDPOINT}`;
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${nexusApiKey}`,
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(15_000),
