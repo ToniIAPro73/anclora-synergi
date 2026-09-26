@@ -4,8 +4,7 @@ import { buildRateLimitKey, checkRateLimit, getRequestIp, getSynergiAuditSeverit
 import { getAdminDefaultLandingPath, hasAdminCapability, resolveAdminCredentials } from '@/lib/admin-auth'
 
 function resetRateLimitStore() {
-  ;(globalThis as typeof globalThis & { __ancloraSynergiRateLimits?: Map<string, unknown> }).__ancloraSynergiRateLimits =
-    new Map<string, unknown>()
+  globalThis.__ancloraSynergiRateLimits = new Map()
 }
 
 test('buildRateLimitKey composes meaningful identifiers', () => {
