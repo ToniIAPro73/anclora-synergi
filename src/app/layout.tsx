@@ -3,6 +3,7 @@ import { DM_Sans } from 'next/font/google'
 import './globals.css'
 import { I18nProvider } from '@/lib/i18n'
 import { SYNERGI_BRAND } from '@/lib/synergi-brand'
+import { versionedPublicAsset } from '@/lib/branding/icon-metadata'
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -16,12 +17,12 @@ export const metadata: Metadata = {
   description: SYNERGI_BRAND.description,
   icons: {
     icon: [
-      { url: SYNERGI_BRAND.faviconPath, sizes: 'any' },
-      { url: SYNERGI_BRAND.favicon32Path, type: 'image/png', sizes: '32x32' },
-      { url: SYNERGI_BRAND.favicon512Path, type: 'image/png', sizes: '512x512' },
+      { url: versionedPublicAsset(SYNERGI_BRAND.faviconPath), sizes: 'any' },
+      { url: versionedPublicAsset(SYNERGI_BRAND.favicon32Path), type: 'image/png', sizes: '32x32' },
+      { url: versionedPublicAsset(SYNERGI_BRAND.favicon512Path), type: 'image/png', sizes: '512x512' },
     ],
-    shortcut: SYNERGI_BRAND.faviconPath,
-    apple: SYNERGI_BRAND.appleTouchIconPath,
+    shortcut: versionedPublicAsset(SYNERGI_BRAND.faviconPath),
+    apple: versionedPublicAsset(SYNERGI_BRAND.appleTouchIconPath),
   },
 }
 
