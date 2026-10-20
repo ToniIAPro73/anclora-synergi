@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "powershell -ExecutionPolicy Bypass -File ./scripts/dev-safe.ps1",
+    "dev": "node ../anclora-infrastructure/scripts/free-port.mjs && powershell -ExecutionPolicy Bypass -File ./scripts/dev-safe.ps1",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
